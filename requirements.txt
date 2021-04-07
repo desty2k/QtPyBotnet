@@ -1,0 +1,16 @@
+PyQt5
+qtpy
+qrainbowstyle
+opencv-python
+cryptography
+qasync
+keyboard
+mouse
+pyperclip
+psutil
+mss
+upnpclient
+py-notifier
+deep-translator
+pyarmor
+pyinstaller
