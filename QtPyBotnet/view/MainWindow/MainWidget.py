@@ -2,7 +2,7 @@ import os
 import sys
 
 from qtpy.QtWidgets import (QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QTableView, QFrame, QAbstractItemView,
-                            QTableWidget, QSizePolicy, QAbstractScrollArea, QHeaderView)
+                            QTableWidget, QSizePolicy, QAbstractScrollArea, QHeaderView, QSplitter)
 from qtpy.QtCore import QSize, Qt, Slot, QModelIndex, Signal
 from qtpy.QtGui import QIcon
 
@@ -24,23 +24,15 @@ class MainWidget(QWidget):
         self.setLayout(self.mainLayout)
 
     def setupUi(self, config):
-        self.sessionsWidget = QWidget(self)
-        self.sessionsWidget.setContentsMargins(0, 0, 0, 0)
-        self.sessionsWidgetLayout = QVBoxLayout(self.sessionsWidget)
-        self.sessionsWidgetLayout.setContentsMargins(0, 0, 0, 0)
-        self.sessionsWidget.setLayout(self.sessionsWidgetLayout)
-        self.mainLayout.addWidget(self.sessionsWidget)
-
-        self.map = GoogleMapsView(self.sessionsWidget, config.value("gmaps_key"))
+        self.map = GoogleMapsView(self, config.value("gmaps_key"))
         self.map.getHandler().markerDoubleClicked.connect(lambda bot_id, lat, lng: self.bot_double_clicked.emit(
             self.tableModel.getDeviceById(int(bot_id))))
         self.map.getHandler().markerClicked.connect(self.bot_clicked.emit)
 
         self.map.setObjectName("mapWidget")
         self.map.enableMarkersDragging(False)
-        self.sessionsWidgetLayout.addWidget(self.map)
 
-        self.botsTable = QTableView(self.sessionsWidget)
+        self.botsTable = QTableView(self)
         self.botsTable.doubleClicked.connect(self.on_botTable_doubleClicked)
         self.botsTable.setObjectName("botsTable")
         self.botsTable.setAutoFillBackground(True)
@@ -70,7 +62,6 @@ class MainWidget(QWidget):
         self.botsTable.setEditTriggers(QTableWidget.NoEditTriggers)
         self.botsTable.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.botsTable.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.botsTable.setMaximumHeight(200)
         self.tableModel = TableModel(self)
         self.tableModel.setObjectName("tableModel")
         self.tableModel.removed.connect(self.map.deleteMarker)
@@ -79,7 +70,12 @@ class MainWidget(QWidget):
         for i in range(self.tableModel.columnCount()):
             self.botsTable.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch)
 
-        self.sessionsWidgetLayout.addWidget(self.botsTable)
+        self.splitter = QSplitter(self)
+        self.splitter.addWidget(self.map)
+        self.splitter.addWidget(self.botsTable)
+        self.splitter.setOrientation(Qt.Vertical)
+
+        self.mainLayout.addWidget(self.splitter)
 
         self.separatorLine = QFrame(self)
         self.separatorLine.setFrameShape(QFrame.VLine)
@@ -98,62 +94,52 @@ class MainWidget(QWidget):
 
         btn_size = QSize(50, 50)
 
-        self.btn0 = QPushButton(self.buttonsWidget)
-        self.btn0.setToolTip("Create payload")
-        self.btn0.setSizePolicy(sizepolicy)
-        self.btn0.setMinimumSize(btn_size)
-        self.btn0.setIconSize(self.btn0.size())
-        self.btn0.clicked.connect(self.payload_button_clicked.emit)
-        self.btn0.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/3d-cube-sphere.svg")))
+        self.payload_button = QPushButton(self.buttonsWidget)
+        self.payload_button.setToolTip("Create payload")
+        self.payload_button.setSizePolicy(sizepolicy)
+        self.payload_button.setMinimumSize(btn_size)
+        self.payload_button.setIconSize(self.payload_button.size())
+        self.payload_button.clicked.connect(self.payload_button_clicked.emit)
+        self.payload_button.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/3d-cube-sphere.svg")))
 
-        self.btn1 = QPushButton(self.buttonsWidget)
-        self.btn1.setToolTip("Send task")
-        self.btn1.setSizePolicy(sizepolicy)
-        self.btn1.setMinimumSize(btn_size)
-        self.btn1.setIconSize(self.btn0.size())
-        self.btn1.clicked.connect(self.task_button_clicked.emit)
-        self.btn1.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/list-check.svg")))
+        self.task_button = QPushButton(self.buttonsWidget)
+        self.task_button.setToolTip("Create tasks")
+        self.task_button.setSizePolicy(sizepolicy)
+        self.task_button.setMinimumSize(btn_size)
+        self.task_button.setIconSize(self.task_button.size())
+        self.task_button.clicked.connect(self.task_button_clicked.emit)
+        self.task_button.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/list-check.svg")))
 
-        # self.btn2 = QPushButton(self.buttonsWidget)
-        # self.btn2.setToolTip("Send module")
-        # self.btn2.setSizePolicy(sizepolicy)
-        # self.btn2.setMinimumSize(btn_size)
-        # self.btn2.setIconSize(self.btn0.size())
-        # self.btn2.clicked.connect(lambda: self.button_clicked.emit("module"))
-        # self.btn2.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/apps.svg")))
-        #
-        # self.btn3 = QPushButton(self.buttonsWidget)
-        # self.btn3.setToolTip("Disconnect")
-        # self.btn3.setSizePolicy(sizepolicy)
-        # self.btn3.setMinimumSize(btn_size)
-        # self.btn3.setIconSize(self.btn0.size())
-        # self.btn3.clicked.connect(lambda: self.button_clicked.emit("disconnect"))
-        # self.btn3.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/wifi.svg")))
-        #
-        # self.btn4 = QPushButton(self.buttonsWidget)
-        # self.btn4.setToolTip("Kill all")
-        # self.btn4.setSizePolicy(sizepolicy)
-        # self.btn4.setMinimumSize(btn_size)
-        # self.btn4.setIconSize(self.btn0.size())
-        # self.btn4.clicked.connect(lambda: self.button_clicked.emit("kill"))
-        # self.btn4.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/bolt.svg")))
-        #
-        # self.btn5 = QPushButton(self.buttonsWidget)
-        # self.btn5.setToolTip("Close")
-        # self.btn5.setSizePolicy(sizepolicy)
-        # self.btn5.setMinimumSize(btn_size)
-        # self.btn5.setIconSize(self.btn0.size())
-        # self.btn5.clicked.connect(lambda: self.button_clicked.emit("close"))
-        # self.btn5.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/alert-circle.svg")))
+        self.modules_button = QPushButton(self.buttonsWidget)
+        self.modules_button.setToolTip("Enable/disable modules")
+        self.modules_button.setSizePolicy(sizepolicy)
+        self.modules_button.setMinimumSize(btn_size)
+        self.modules_button.setIconSize(self.modules_button.size())
+        # self.modules_button.clicked.connect()
+        self.modules_button.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/apps.svg")))
 
-        self.buttonsWidgetLayout.addWidget(self.btn0)
-        self.buttonsWidgetLayout.addWidget(self.btn1)
-        # self.buttonsWidgetLayout.addWidget(self.btn2)
-        # self.buttonsWidgetLayout.addWidget(self.btn3)
-        # self.buttonsWidgetLayout.addWidget(self.btn4)
-        # self.buttonsWidgetLayout.addWidget(self.btn5)
+        self.disconnect_button = QPushButton(self.buttonsWidget)
+        self.disconnect_button.setToolTip("Disconnect")
+        self.disconnect_button.setSizePolicy(sizepolicy)
+        self.disconnect_button.setMinimumSize(btn_size)
+        self.disconnect_button.setIconSize(self.disconnect_button.size())
+        # self.disconnect_button.clicked.connect()
+        self.disconnect_button.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/wifi-off.svg")))
 
-        self.mainLayout.addWidget(self.sessionsWidget)
+        self.close_button = QPushButton(self.buttonsWidget)
+        self.close_button.setToolTip("Close")
+        self.close_button.setSizePolicy(sizepolicy)
+        self.close_button.setMinimumSize(btn_size)
+        self.close_button.setIconSize(self.close_button.size())
+        self.close_button.clicked.connect(self.window().closeClicked.emit)
+        self.close_button.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/x.svg")))
+
+        self.buttonsWidgetLayout.addWidget(self.payload_button)
+        self.buttonsWidgetLayout.addWidget(self.task_button)
+        self.buttonsWidgetLayout.addWidget(self.modules_button)
+        self.buttonsWidgetLayout.addWidget(self.disconnect_button)
+        self.buttonsWidgetLayout.addWidget(self.close_button)
+
         self.mainLayout.addWidget(self.separatorLine)
         self.mainLayout.addWidget(self.buttonsWidget)
 
