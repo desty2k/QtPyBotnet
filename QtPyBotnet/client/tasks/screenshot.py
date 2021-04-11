@@ -7,7 +7,6 @@ class Screenshot(Task):
     platforms = ["win32", "linux", "darwin"]
     description = __doc__
     administrator = {"win32": False, "linux": False, "darwin": False}
-    experimental = False
 
     def __init__(self, task_id):
         super(Screenshot, self).__init__(task_id)
