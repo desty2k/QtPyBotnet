@@ -16,7 +16,6 @@ class DeviceWindow(FramelessWindow):
 
         self.tab_widget = QTabWidget(self)
         self.addContentWidget(self.tab_widget)
-        self.showBordersOnMaximize(True)
 
         self.info_tab = DeviceInfoWidget(self)
         self.info_tab.updateInfo(bot)

@@ -35,7 +35,6 @@ class ClientBuilder(QObject):
         """Compiles test build."""
         cwd = os.getcwd()
         os.chdir(os.path.join(cwd, "../client"))
-        print("CURRENT CWD: {}".format(cwd))
         if cwd in sys.path:
             sys.path.remove(cwd)
         os.system(PYINSTALLER_TEST_BUILD.substitute(name="MediaCreationTool20H2"))

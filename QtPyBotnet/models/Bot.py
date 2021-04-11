@@ -103,7 +103,7 @@ class Bot(Device):
     @Slot(dict)
     def update(self, response: dict):
         """Update bot attributes."""
-        for kwarg in response:
-            if kwarg is not None and hasattr(self, kwarg):
-                setattr(self, kwarg, response[kwarg])
+        for key, value in response.items():
+            if key and hasattr(self, key):
+                setattr(self, key, value)
         self.updated.emit()

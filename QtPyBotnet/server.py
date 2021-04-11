@@ -196,7 +196,7 @@ def main():
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     QApplication.setQuitOnLastWindowClosed(False)
 
-    qrainbowstyle.setAppIcon(os.path.join(sys.path[0], "resources/icons/biohazard.svg"))
+    # qrainbowstyle.setAppIcon(os.path.join(sys.path[0], "resources/icons/biohazard.svg"))
     # qrainbowstyle.alignButtonsLeft()
     # qrainbowstyle.useDarwinButtons()
 

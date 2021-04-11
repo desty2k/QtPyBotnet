@@ -74,9 +74,6 @@ class TableModel(QAbstractTableModel):
             self.bots.remove(bot)
             self.removed.emit(bot_id)
             self.repaint()
-        else:
-            print("BotTable: Tried to delete bot with ID {} but it is not in table: {}".format(bot_id, [x.id for x in
-                                                                                                        self.bots]))
 
     def clear(self):
         """Clear the table"""

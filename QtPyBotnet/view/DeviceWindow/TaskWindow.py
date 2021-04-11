@@ -75,7 +75,6 @@ class TaskWindow(FramelessWindow):
         self.widget_layout = QFormLayout(self.content_widget)
         self.content_widget.setLayout(self.widget_layout)
         self.addContentWidget(self.content_widget)
-        self.showBordersOnMaximize(True)
 
         self.task_id_label = QLabel(self.content_widget)
         self.task_id_label.setObjectName("task_id_label")

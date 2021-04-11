@@ -98,7 +98,6 @@ class BotnetWindow(FramelessWindow):
         self.installEventFilter(self)
         self.setSubContentSpacing(16)
         self.addContentWidget(self.__mainWidget)
-        self.showBordersOnMaximize(True)
 
     def addSubContentWidget(self, widget: QWidget):
         self.__subContentLayout.addWidget(widget, 2, 0, 1, 1)
