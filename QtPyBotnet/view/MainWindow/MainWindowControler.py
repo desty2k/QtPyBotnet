@@ -56,7 +56,7 @@ class MainWindow(FramelessWindow):
         self.content_widget.setupUi(config)
         self.addContentWidget(self.content_widget)
 
-        self.console = Console()
+        self.console = Console(self)
         self.console.message.connect(self.client.write)
         self.console.setVisible(False)
 
