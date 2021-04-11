@@ -1,5 +1,6 @@
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QWidget, QHBoxLayout, QGroupBox, QCheckBox, QLineEdit, QTextEdit, QSpinBox, QVBoxLayout, QRadioButton
+from qtpy.QtWidgets import (QWidget, QHBoxLayout, QGroupBox, QCheckBox, QLineEdit, QDateTimeEdit,
+                            QTextEdit, QSpinBox, QVBoxLayout, QRadioButton, QFormLayout, QLabel)
 
 from core.config import ConfigManager
 
@@ -54,45 +55,56 @@ class KwargsWidget(QGroupBox):
         self.widgets = []
         self.current_task = None
 
-        self.widget_layout = QVBoxLayout(self)
+        self.widget_layout = QFormLayout(self)
         self.setLayout(self.widget_layout)
 
         self.setTitle("Options")
 
     @Slot(type)
     def set_kwargs(self, task):
-        if task is self.current_task:
+        if not task or task is self.current_task:
             return
+        else:
+            for widget_dict in self.widgets:
+                key_widget = widget_dict.get("key")
+                value_widget = widget_dict.get("value")
 
-        if task is not self.current_task:
-            for widget in self.widgets:
-                widget.setParent(None)
-                widget.deleteLater()
-                self.widget_layout.removeWidget(widget)
+                if key_widget:
+                    key_widget.setParent(None)
+                    self.widget_layout.removeWidget(key_widget)
+
+                value_widget.setParent(None)
+                self.widget_layout.removeWidget(value_widget)
             self.widgets.clear()
             self.current_task = task
 
-        if not task:
-            return
-
         kwargs_dict = task.kwargs
         for key, value in kwargs_dict.items():
+            key_label = QLabel(str(key), self)
             val_type = value.get("type")
-            if val_type == "int":
+            default = value.get("default")
+
+            if val_type is int:
                 widget = QSpinBox(self)
-            elif val_type == "str":
+                widget.setRange(0, 100000)
+                widget.setValue(int(default))
+            elif val_type is str:
                 widget = QLineEdit(self)
+                widget.setText(str(default))
+            elif val_type is bool:
+                key_label = None
+                widget = QCheckBox(str(key), self)
+                widget.setChecked(bool(default))
             elif val_type == "text":
                 widget = QTextEdit(self)
-            elif val_type == "bool":
-                widget = QCheckBox(str(key), self)
+                widget.setText(str(default))
             else:
-                return
+                continue
 
             widget.setObjectName(key)
             widget.setToolTip(value.get("description"))
-            self.widgets.append(widget)
-            self.widget_layout.addWidget(widget)
+            self.widgets.append({"key": key_label, "value": widget})
+            self.widget_layout.addRow(key_label, widget)
 
     def get_kwargs(self):
         kwargs = {}
