@@ -16,9 +16,9 @@ class BaseFrame(QWidget):
         self.setAttribute(Qt.WA_StyledBackground)
         self.setStyleSheet(qrainbowstyle.rainbowize("""
                             BaseFrame {
-                            border-radius: 2.5px;
-                            border-color: COLOR_SELECTION_LIGHT;
-                            border-width: 1.5px;
+                            border-radius: 3px;
+                            border-color: COLOR_ACCENT_3;
+                            border-width: 2px;
                             }
                         """))
 
