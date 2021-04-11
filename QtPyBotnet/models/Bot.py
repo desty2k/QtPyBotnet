@@ -4,6 +4,7 @@ from QtPyBotnet.models.Events import Info, Module, Task
 from QtPyNetwork.models import Device
 
 import logging
+import datetime
 
 
 class Bot(Device):
@@ -27,6 +28,7 @@ class Bot(Device):
         self.username = "Unknown"
         self.administrator = "Unknown"
         self.language = "Unknown"
+        self.creation_time = datetime.datetime.now()
 
         self.tasks = []
         self.modules = []
