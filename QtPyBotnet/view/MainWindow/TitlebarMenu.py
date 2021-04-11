@@ -16,3 +16,9 @@ class TitlebarMenu(QMenu):
         self.style_action = QAction('Change style', self)
         self.style_action.setObjectName("change_style")
         self.addAction(self.style_action)
+
+        self.stay_top_action = QAction("Stay on top", self)
+        self.stay_top_action.setObjectName("stay_top_action")
+        self.stay_top_action.setCheckable(True)
+        self.stay_top_action.setChecked(bool(self.window().windowFlags() & Qt.WindowStaysOnTopHint))
+        self.addAction(self.stay_top_action)

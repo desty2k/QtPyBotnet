@@ -40,7 +40,6 @@ class MainWindow(FramelessWindow):
         self.menu = None
 
         self.styler = StyleLooper()
-        self.showBordersOnMaximize(True)
         self.resize(1200, 700)
 
         try:
@@ -102,6 +101,14 @@ class MainWindow(FramelessWindow):
     @asyncSlot()
     async def on_change_style_triggered(self):
         self.styler.change()
+
+    @asyncSlot(bool)
+    async def on_stay_top_action_triggered(self, checked):
+        if checked:
+            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+        else:
+            self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
+        self.show()
 
     @asyncSlot(dict)
     async def on_gui_message(self, message: dict):
