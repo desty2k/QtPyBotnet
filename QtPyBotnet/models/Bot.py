@@ -19,14 +19,14 @@ class Bot(Device):
         self.hash = None
         self.key = None
 
-        self.public_ip = None
-        self.geolocation = None
-        self.platform = None
-        self.architecture = None
-        self.system_architecture = None
-        self.username = None
-        self.administrator = None
-        self.language = None
+        self.public_ip = "Unknown"
+        self.geolocation = "Unknown"
+        self.platform = "Unknown"
+        self.architecture = "Unknown"
+        self.system_architecture = "Unknown"
+        self.username = "Unknown"
+        self.administrator = "Unknown"
+        self.language = "Unknown"
 
         self.tasks = []
         self.modules = []
