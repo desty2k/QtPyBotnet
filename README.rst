@@ -30,6 +30,7 @@ Modules
 Tasks
 ~~~~~
 - [x] Clipboard logger - periodically dumps clipboard contents.
+- [x] Clipboard replacer - replaces clipboard contents which matches regex e.g Bitcoin addresses.
 - [x] Cloud drives spreaders - replicate to cloud drives. Currently OneDrive only.
 - [x] Crasher - tries to crash OS using various methods.
 - [x] Forwaded ports - scans for forwaded ports.
@@ -42,7 +43,7 @@ Tasks
 - [x] Screenshot - takes screenshost of all available displays.
 - [x] System credentials stealer - uses social engineering to steal device owner password.
 - [x] UPnP - tries to create UPnP port forwading rules on routers.
-- [ ] Network scanner
+- [x] Network scanner
 - [ ] SSH spreader
 - [ ] WinRM spreader
 - [ ] E-mail spreader
