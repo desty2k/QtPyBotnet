@@ -70,7 +70,9 @@ def average(data: list):
 
 def dateToStr(date):
     """Convert date object to string."""
-    return date.strftime("%Y-%m-%d %H:%M:%S")
+    from datetime import datetime
+    if type(date) is datetime:
+        return date.strftime("%Y-%m-%d %H:%M:%S")
 
 
 def strToDate(date: str):
