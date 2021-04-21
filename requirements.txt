@@ -14,3 +14,4 @@ py-notifier
 deep-translator
 pyarmor
 pyinstaller
+coloredlogs
