@@ -5,8 +5,8 @@ import logging
 
 from qrainbowstyle.windows import FramelessCriticalMessageBox
 
-from QtPyBotnet.view.BaseWidgets import BotnetWindow
-from QtPyBotnet.view.LoginWindow.Frames import ConnectFrame, LoginFrame, ModeFrame
+from view.BaseWidgets import BotnetWindow
+from view.LoginWindow.Frames import ConnectFrame, LoginFrame, ModeFrame
 
 
 class LoginDialog(BotnetWindow):

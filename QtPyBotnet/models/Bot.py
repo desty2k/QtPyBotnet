@@ -1,6 +1,6 @@
 from qtpy.QtCore import QObject, Signal, Slot
 
-from QtPyBotnet.models.Events import Info, Module, Task
+from models.Events import Info, Module, Task
 from QtPyNetwork.models import Device
 
 import logging

@@ -1,10 +1,11 @@
 import logging
 
-from qtpy.QtCore import Slot, Signal, QTimer
+from qtpy.QtCore import Slot, Signal
 
-from QtPyBotnet.models import Bot, Task, Module, Info
+from models import Bot, Task, Module, Info
+from core.crypto import generate_key
+
 from QtPyNetwork.server import QBalancedServer
-from QtPyBotnet.core.crypto import generate_key
 
 from qasync import asyncSlot
 

@@ -1,7 +1,7 @@
 from qtpy.QtWidgets import QTableView, QFrame, QAbstractScrollArea, QAbstractItemView, QTableWidget, QHeaderView
 from qtpy.QtCore import Qt, Signal, QPoint, Slot, QModelIndex
 
-from QtPyBotnet.models import Task
+from models import Task
 
 
 class QTable(QTableView):

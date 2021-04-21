@@ -1,10 +1,9 @@
 from qtpy.QtWidgets import (QWidget, QVBoxLayout, QDialogButtonBox, QGridLayout)
 from qtpy.QtCore import (Signal, QMetaObject, Slot)
 
-
-from QtPyBotnet.view.BaseWidgets import BaseFrame
-from QtPyBotnet.view.SetupWindow.ConfigFrames import (TermsFrame, KeyFrame, ServerFrame, InfoFrame, TaskFrame,
-                                                      ModuleFrame, FinishFrame, GUIFrame)
+from view.BaseWidgets import BaseFrame
+from view.SetupWindow.ConfigFrames import (TermsFrame, KeyFrame, ServerFrame, InfoFrame, TaskFrame,
+                                           ModuleFrame, FinishFrame, GUIFrame)
 
 
 class ConfigFrame(BaseFrame):

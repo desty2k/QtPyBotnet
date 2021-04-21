@@ -2,11 +2,11 @@ from qtpy.QtWidgets import QWidget, QFormLayout, QMenu, QAction, QLabel, QHBoxLa
 from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QCursor, QCloseEvent
 
-from QtPyBotnet.view.BaseWidgets.QTable import TasksTable, ModulesTable
-from QtPyBotnet.models.EventsTable import TasksTableModel, ModulesTableModel
+from models import Task
+from models.EventsTable import TasksTableModel, ModulesTableModel
 
-from QtPyBotnet.models import Task
-from view.DeviceWindow import TaskWindow
+from view.DeviceWindow.TaskWindow import TaskWindow
+from view.BaseWidgets.QTable import TasksTable, ModulesTable
 
 
 class WidgetWithCloseSignal(QWidget):

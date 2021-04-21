@@ -8,7 +8,7 @@ import qrainbowstyle.windows
 
 import ipaddress
 
-from QtPyBotnet.view.BaseWidgets import BaseFrame
+from view.BaseWidgets import BaseFrame
 
 
 class ModeFrame(BaseFrame):

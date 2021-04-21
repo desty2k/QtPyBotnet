@@ -7,8 +7,8 @@ import os
 import sys
 from socket import gethostname, gethostbyname
 
-from QtPyBotnet.core.config import ConfigManager
-from QtPyBotnet.core.crypto import generate_key
+from core.config import ConfigManager
+from core.crypto import generate_key
 
 
 class ConfigBaseFrame(QWidget):

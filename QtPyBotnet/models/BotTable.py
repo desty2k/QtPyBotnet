@@ -1,6 +1,6 @@
 from qtpy.QtCore import QAbstractTableModel, Qt, QModelIndex, Signal
 
-from QtPyBotnet.models.Events import Info, Module, Task
+from models.Events import Info, Module, Task
 
 
 class TableModel(QAbstractTableModel):

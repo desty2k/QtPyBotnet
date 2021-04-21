@@ -9,12 +9,12 @@ from qrainbowstyle.utils import StyleLooper
 
 from qasync import asyncSlot
 
-from QtPyBotnet.models import Bot
-from QtPyBotnet.core.Network import GUIClient
-from QtPyBotnet.view.TaskWindow import TaskWindow
-from QtPyBotnet.view.ConsoleWindow import Console
-from QtPyBotnet.view.MainWindow import TitlebarMenu, MainWidget
-from QtPyBotnet.view.DeviceWindow import DeviceWindow
+from models import Bot
+from core.Network import GUIClient
+from view.TaskWindow import TaskWindow
+from view.ConsoleWindow import Console
+from view.MainWindow import TitlebarMenu, MainWidget
+from view.DeviceWindow import DeviceWindow
 
 
 class MainWindow(FramelessWindow):

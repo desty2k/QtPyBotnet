@@ -6,7 +6,7 @@ from base64 import b64decode
 
 from qrainbowstyle.windows import FramelessWindow
 
-from QtPyBotnet.models import Task
+from models import Task
 
 
 class StringDictWidget(QWidget):

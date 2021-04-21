@@ -5,8 +5,8 @@ from qtpy.QtCore import (Signal, QMetaObject, Slot, QSize, QPropertyAnimation, Q
 
 import logging
 
-from QtPyBotnet.view.BaseWidgets import BotnetWindow
-from QtPyBotnet.view.SetupWindow.Frames import ConfigFrame
+from view.BaseWidgets import BotnetWindow
+from view.SetupWindow.Frames import ConfigFrame
 
 
 class SetupDialog(BotnetWindow):

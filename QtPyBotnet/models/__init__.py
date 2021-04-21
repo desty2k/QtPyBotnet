@@ -1,2 +1,2 @@
-from QtPyBotnet.models.Bot import Bot
-from QtPyBotnet.models.Events import Task, Module, Info
+from .Bot import Bot
+from .Events import Task, Module, Info

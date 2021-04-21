@@ -5,8 +5,6 @@ from qtpy.QtWidgets import (QWidget, QGridLayout, QSizePolicy, QSpacerItem, QLab
 import qrainbowstyle
 from qrainbowstyle.windows import FramelessWindow
 
-from QtPyBotnet import __app_name__
-
 
 class BaseFrame(QWidget):
 
@@ -40,18 +38,6 @@ class BotnetWindow(FramelessWindow):
         self.__gridLayout.setContentsMargins(0, 0, 0, 0)
         self.__mainWidget.setLayout(self.__gridLayout)
 
-        self.background = None
-        # self.background = QLabel(self.__mainWidget)
-        # self.background.setObjectName("botnet_background")
-        # self.background.setPixmap(QPixmap("C:\\Users\\wojci\\Documents\\GitHub\\QtPyBotnet\\images\\login2.png"))
-        # self.background.setContentsMargins(0, 0, 0, 0)
-        # self.background.setScaledContents(True)
-        # self.background.setAutoFillBackground(True)
-        # self.background.setMouseTracking(True)
-        # self.effect = QGraphicsBlurEffect()
-        # self.effect.setBlurRadius(15)
-        # self.background.setGraphicsEffect(self.effect)
-
         self.__spacerLeft = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.__gridLayout.addItem(self.__spacerLeft, 2, 1, 1, 1)
 
@@ -84,7 +70,7 @@ class BotnetWindow(FramelessWindow):
         self.__app_name.setScaledContents(True)
         self.__app_name.setAutoFillBackground(True)
         self.__app_name.setAlignment(Qt.AlignCenter)
-        self.__app_name.setText(__app_name__)
+        self.__app_name.setText("QtPyBotnet")
         self.__app_name.setAttribute(Qt.WA_TranslucentBackground)
         self.__app_name.setScaledContents(True)
         self.__app_name.autoFillBackground()
@@ -105,14 +91,5 @@ class BotnetWindow(FramelessWindow):
     def setSubContentSpacing(self, spacing: int):
         self.__subContentLayout.setSpacing(spacing)
 
-    def setBackgroundPixmap(self, background: QPixmap):
-        self.background.setPixmap(background)
-
     def showLogo(self, value: bool):
         self.__app_name.setVisible(value)
-
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.Resize:
-            if self.background:
-                self.background.resize(self.__mainWidget.size())
-        return super().eventFilter(obj, event)

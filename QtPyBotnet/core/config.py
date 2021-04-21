@@ -4,8 +4,8 @@ import logging
 
 from qtpy.QtCore import Signal, QObject
 
-from QtPyBotnet.core.crypto import encrypt, decrypt
-from QtPyBotnet.core.importer import get_subclassess_by_name, function_importer
+from core.crypto import encrypt, decrypt
+from core.importer import get_subclassess_by_name, function_importer
 
 
 class ConfigManager(QObject):

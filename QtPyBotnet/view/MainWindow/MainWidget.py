@@ -8,8 +8,8 @@ from qtpy.QtGui import QIcon
 
 from qrainbowstyle.widgets import GoogleMapsView
 
-from QtPyBotnet.models import Bot
-from QtPyBotnet.models.BotTable import TableModel
+from models import Bot
+from models.BotTable import TableModel
 
 
 class MainWidget(QWidget):

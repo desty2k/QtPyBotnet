@@ -4,7 +4,7 @@ from QtPyNetwork.server import QThreadedServer
 
 from qasync import asyncSlot
 
-from QtPyBotnet.models import Task, Module, Info
+from models import Task, Module, Info
 
 
 class GUIServer(QThreadedServer):
