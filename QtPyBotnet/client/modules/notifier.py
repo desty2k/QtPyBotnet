@@ -32,5 +32,5 @@ class Notifier(Module):
             description=description,
             icon_path=icon_path,
             duration=duration,
-            urgency=Notification.URGENCY_CRITICAL
+            urgency="critical"
         ).send()
