@@ -1,5 +1,4 @@
 from tasks.__task import Task
-from utils import threaded_task
 
 
 class ClipboardLogger(Task):
@@ -8,7 +7,7 @@ class ClipboardLogger(Task):
     description = __doc__
     administrator = {"win32": False, "linux": False, "darwin": False}
     kwargs = {"log_time": {"type": int, "description": "Logging time in seconds", "default": 900},
-              "log_frequency": {"type": int, "description": "Delay between next clipboard check", "default": 5}}
+              "log_frequency": {"type": int, "description": "Delay between next clipboard checks", "default": 5}}
 
     def __init__(self, task_id):
         super(ClipboardLogger, self).__init__(task_id)
@@ -19,8 +18,16 @@ class ClipboardLogger(Task):
         self._data = []
         self._run = threading.Event()
 
-    @threaded_task
-    def start(self, log_time=900, log_frequency=5):
+    def run(self, **kwargs):
+        assert "log_time" in kwargs, "Missing keyword argument log_time"
+        assert "log_frequency" in kwargs, "Missing keyword argument log_frequency"
+
+        log_time = int(kwargs.get("log_time"))
+        log_frequency = int(kwargs.get("log_frequency"))
+
+        assert log_time > 0, "Log time must be greater than 0"
+        assert log_frequency > 0, "Log frequency must be greater than 0"
+
         import time
         import pyperclip
 

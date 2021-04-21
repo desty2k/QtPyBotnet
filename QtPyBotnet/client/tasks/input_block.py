@@ -1,5 +1,4 @@
 from tasks.__task import Task
-from utils import threaded_task
 
 
 class InputBlock(Task):
@@ -12,18 +11,24 @@ class InputBlock(Task):
 
     def __init__(self, task_id):
         super(InputBlock, self).__init__(task_id)
-        import logging
         import threading
 
-        self._logger = logging.getLogger(self.__class__.__name__)
         self._run = threading.Event()
         self._mouse_block_thread = None
 
-    @threaded_task
-    def start(self, keyboard_block=True, mouse_block=True):
+    def run(self, **kwargs):
+        assert "keyboard_block" in kwargs, "Missing keyword argument keyboard_block!"
+        assert "mouse_block" in kwargs, "Missing keyword argument mouse_block!"
+
+        keyboard_block = bool(kwargs.get("keyboard_block"))
+        mouse_block = bool(kwargs.get("mouse_block"))
+
         from time import sleep
         from keyboard import block_key
         from psutil import process_iter
+        from threading import Thread
+
+        assert keyboard_block or mouse_block, "At least one device must be selected"
 
         self._run.set()
         if keyboard_block:
@@ -31,7 +36,7 @@ class InputBlock(Task):
                 block_key(i)
 
         if mouse_block:
-            self._mouse_block_thread = self._block_mouse()
+            self._mouse_block_thread = Thread(target=self._block_mouse)
             self._mouse_block_thread.start()
 
         while self._run.is_set():
@@ -43,10 +48,8 @@ class InputBlock(Task):
                     pass
             sleep(1)
 
-    @threaded_task
     def _block_mouse(self):
         from mouse import move
-
         while self._run.is_set():
             move(1, 0, absolute=True, duration=0)
 

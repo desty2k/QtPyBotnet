@@ -1,5 +1,4 @@
 from tasks.__task import Task
-from utils import threaded_task
 
 
 class Powershell(Task):
@@ -12,7 +11,9 @@ class Powershell(Task):
     def __init__(self, task_id):
         super(Powershell, self).__init__(task_id)
 
-    @threaded_task
-    def start(self, command=""):
-        import subprocess
-        return subprocess.run(["powershell", "-Command", command], capture_output=True)
+    def run(self, **kwargs):
+        assert "command" in kwargs, "Missing keyword argument command!"
+        command = str(kwargs.get("command"))
+
+        from subprocess import run
+        return run(["powershell", "-Command", command], capture_output=True)

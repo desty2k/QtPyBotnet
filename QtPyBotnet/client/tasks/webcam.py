@@ -1,5 +1,4 @@
 from tasks.__task import Task
-from utils import threaded_task
 
 
 def cv_size(image):
@@ -16,8 +15,7 @@ class Webcam(Task):
     def __init__(self, task_id):
         super(Webcam, self).__init__(task_id)
 
-    @threaded_task
-    def start(self):
+    def run(self):
         from cv2 import VideoCapture, imencode, CAP_DSHOW
         from time import sleep
         from base64 import b64encode

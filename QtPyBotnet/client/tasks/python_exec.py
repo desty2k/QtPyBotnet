@@ -1,5 +1,4 @@
 from tasks.__task import Task
-from utils import threaded_task
 
 
 class PythonExec(Task):
@@ -13,6 +12,7 @@ class PythonExec(Task):
     def __init__(self, task_id):
         super(PythonExec, self).__init__(task_id)
 
-    @threaded_task
-    def start(self, command=""):
+    def run(self, **kwargs):
+        assert "command" in kwargs, "Missing keyword argument command!"
+        command = str(kwargs.get("command"))
         return exec(command)

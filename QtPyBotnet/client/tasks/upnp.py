@@ -1,6 +1,4 @@
 from tasks.__task import Task
-from utils import threaded_task
-
 from socket import gethostname, gethostbyname
 
 
@@ -19,10 +17,9 @@ class UPnPForward(Task):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._run = threading.Event()
 
-    @threaded_task
-    def start(self, internal_port=8192, external_port=8192,
-              duration=0, protocol="TCP", name="Internet access", enabled="1",
-              internal_ip=gethostbyname(gethostname())):
+    def run(self, internal_port=8192, external_port=8192,
+            duration=0, protocol="TCP", name="Internet access", enabled="1",
+            internal_ip=gethostbyname(gethostname())):
         from ipaddress import ip_address
         try:
             addr = ip_address(internal_ip)

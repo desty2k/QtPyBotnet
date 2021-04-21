@@ -2,7 +2,7 @@ import socket
 
 from tasks.__task import Task
 from tasks.upnp import UPnPForward
-from utils import random_string, threaded_task
+from utils import random_string, threaded
 from infos import public_ip
 
 
@@ -15,7 +15,7 @@ class ForwadedPorts(Task):
     description = __doc__
     administrator = {"win32": False, "linux": False, "darwin": False}
     kwargs = {"use_upnp": {"type": bool, "description": "Try to create forwading rules using UPnP", "default": True},
-              "find_first": {"type": bool, "description": "Return first found port", "default": False}}
+              "return_first_found": {"type": bool, "description": "Return first found port", "default": False}}
 
     def __init__(self, task_id):
         super(ForwadedPorts, self).__init__(task_id)
@@ -25,9 +25,14 @@ class ForwadedPorts(Task):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._run = threading.Event()
 
-    @threaded_task
-    def start(self, use_upnp=True, find_first=False):
-        self._logger.info("Starting task {}".format(self.__class__.__name__))
+    # def run(self, use_upnp=True, find_first=False):
+    def run(self, **kwargs):
+        assert "use_upnp" in kwargs, "Missing keyword argument use_upnp!"
+        assert "return_first_found" in kwargs, "Missing keyword argument return_first_found!"
+
+        use_upnp = bool(kwargs.get("use_upnp"))
+        return_first_found = bool(kwargs.get("return_first_found"))
+
         self._logger.debug("Getting public IP address...")
         try:
             target_ip = public_ip()
@@ -56,7 +61,7 @@ class ForwadedPorts(Task):
 
                         if result is not None:
                             results["open"].append(port)
-                            if find_first:
+                            if return_first_found:
                                 return results
                             continue
                         else:
@@ -91,7 +96,7 @@ class ForwadedPorts(Task):
     def stop(self):
         self._run.clear()
 
-    @threaded_task
+    @threaded
     def _setup_server(self, ip, port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
             server.bind((ip, port))
@@ -102,7 +107,7 @@ class ForwadedPorts(Task):
                 data = conn.recv(256)
                 conn.sendall(data)
 
-    @threaded_task
+    @threaded
     def _setup_client(self, ip, port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

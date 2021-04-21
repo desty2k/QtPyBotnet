@@ -1,5 +1,4 @@
 from tasks.__task import Task
-from utils import threaded_task
 
 
 class MethodRegistry:
@@ -51,11 +50,10 @@ class Persistence(Task):
         super(Persistence, self).__init__(task_id)
         self.methods = [MethodRegistry, MethodCrontab]
 
-    @threaded_task
-    def start(self):
+    def run(self):
         import sys
-        if not getattr(sys, 'frozen', False):
-            raise Exception("Package not frozen")
+        assert getattr(sys, 'frozen', False), "Package not frozen"
+
         from infos import administrator, platform
         failed = []
         admin = administrator()

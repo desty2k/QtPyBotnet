@@ -104,14 +104,13 @@ class TaskThread(Thread):
         return {"result": self.result, "exit_code": self.exit_code}
 
 
-def threaded_task(function):
+def threaded(function):
     @wraps(function)
     def wrapper(*args, **kwargs):
         thread = TaskThread(target_func=function, args=args, kwargs=kwargs)
         thread.start()
         return thread
     return wrapper
-
 
 
 import json

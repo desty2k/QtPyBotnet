@@ -1,4 +1,7 @@
-from utils import dateToStr
+import queue
+import logging
+
+from utils import dateToStr, threaded
 
 
 class Task:
@@ -22,6 +25,8 @@ class Task:
         self.time_finished = None
 
         self.thread = None
+        self.progress = queue.Queue()
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def serialize(self):
         """Creates dict from task object."""
@@ -55,9 +60,13 @@ class Task:
         """Returns thread."""
         return self.thread
 
+    @threaded
     def start(self):
-        """Start task."""
-        pass
+        self.logger.debug("Starting task {}".format(self.__class__.__name__))
+        return self.run()
+
+    def run(self, **kwargs):
+        raise NotImplementedError("Run not implemented for this task!")
 
     def stop(self):
         """Exit event loop inside thread."""

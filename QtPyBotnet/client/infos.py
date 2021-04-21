@@ -63,14 +63,13 @@ def is_running_in_docker():
 
     if path.exists('/.dockerenv'):
         return True
+    else:
+        return False
 
-    try:
-        with open('/proc/self/cgroup)') as f:
-            return any('docker' in line for line in f)
-    except Exception:
-        pass
 
-    raise Exception("Failed to check if running in container.")
+def network_interfaces():
+    from psutil import net_if_addrs
+    return net_if_addrs()
 
 
 def is_running_in_vm():
