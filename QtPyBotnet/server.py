@@ -9,13 +9,14 @@ from qtpy.QtWidgets import QApplication
 from qtpy.QtCore import Qt, QObject, qInstallMessageHandler, QMetaObject
 
 import qrainbowstyle
-from qrainbowstyle.extras import OutputLogger, qt_message_handler
+from qrainbowstyle.extras import qt_message_handler
 
 from qasync import QEventLoop, asyncSlot, asyncClose
 
 from __init__ import __version__, __app_name__
 from core.Network import GUIServer, C2Server
 from core.config import ConfigManager
+from core.logger import Logger
 from view.LoginWindow import LoginDialog
 from view.MainWindow import MainWindow
 from view.SetupWindow import SetupDialog
@@ -172,7 +173,8 @@ class Main(QObject):
 
 
 def main():
-    logger = OutputLogger()
+    logger = Logger()
+    logger.enable()
     qInstallMessageHandler(qt_message_handler)
 
     def exception_hook(exctype, value, tb):
