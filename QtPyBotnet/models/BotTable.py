@@ -49,7 +49,7 @@ class TableModel(QAbstractTableModel):
         event_type = message.get("event_type")
         if bot is not None and event_type is not None:
             if event_type == "task":
-                task = bot.getTaskById(message.get("task_id"))
+                task = bot.get_task_by_id(message.get("task_id"))
                 if not task:
                     task = Task(bot_id,
                                 message.get("task_id"),

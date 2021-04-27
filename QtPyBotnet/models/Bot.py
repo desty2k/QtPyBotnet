@@ -15,6 +15,8 @@ class Bot(Device):
         # add later - uniqe number for each computer
         # ip and port may change - use mac addr?
         self.hash = None
+        self.key = None
+        self.connected = False
 
         self.public_ip = "Unknown"
         self.geolocation = "Unknown"
@@ -40,10 +42,18 @@ class Bot(Device):
         return self.next_task_id
 
     @Slot()
-    def getTaskById(self, task_id):
+    def get_task_by_id(self, task_id):
         for task in self.tasks:
             if task.get_id() == task_id:
                 return task
+
+    @Slot()
+    def is_connected(self):
+        return self.connected
+
+    @Slot(bytes)
+    def set_custom_key(self, key):
+        self.key = key
 
     @Slot(Info)
     def on_info_received(self, info: Info):

