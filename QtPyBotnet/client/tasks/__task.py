@@ -61,9 +61,18 @@ class Task:
         return self.thread
 
     @threaded
-    def start(self):
+    def start(self, kwargs):
+        """Check if all keyword arguments are valid and run thread."""
+        for kw in self.kwargs:
+            assert kw in kwargs, "Missing keyword argument {}".format(kw)
+            try:
+                kwargs[kw] = self.kwargs[kw].get("type")(kwargs[kw])
+            except TypeError:
+                raise TypeError("Invalid type for keyword argument {} expected {}."
+                                .format(kw, self.kwargs[kw].get("type")))
         self.logger.debug("Starting task {}".format(self.__class__.__name__))
-        return self.run()
+        self.started = True
+        return self.run(**kwargs)
 
     def run(self, **kwargs):
         raise NotImplementedError("Run not implemented for this task!")
