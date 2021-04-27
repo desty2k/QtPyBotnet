@@ -310,19 +310,8 @@ class Main:
                                                  "state": "finished", "result": e, "exit_code": 1})
 
                                 elif event == "stop":
-                                    task_obj = self.get_task_by_id(task_id)
-                                    # check if task running and stop it
-                                    if task_obj:
-                                        self.logger.debug("Trying to stop task {}".format(task_obj.id))
-                                        task_obj.stop()
-                                        self.logger.info("Task {} stopped successfully".format(task_obj.id))
+                                    self.stop_task(task_id)
 
-                                elif event == "terminate":
-                                    task_obj = self.get_task_by_id(task_id)
-                                    if task_obj:
-                                        self.logger.debug("Trying to terminate task {}".format(task_obj.id))
-                                        task_obj.stop()
-                                        self.tasks.remove(task_obj)
                             else:
                                 self.logger.error("Failed to find matching event type for message: {}".format(data))
             else:
@@ -341,13 +330,23 @@ class Main:
 
         self.close()
 
-    def running_task_names(self):
-        return [task.__class__.__name__ for task in self.tasks]
+    def stop_task(self, task_id):
+        for task in self.tasks_que:
+            if task.id == task_id:
+                self.tasks_que.remove(task)
+                self.tasks.append(task)
+                self.logger.info("Task {} removed from queue".format(task.id))
+                return
 
-    def get_task_by_id(self, task_id):
         for task in self.tasks:
             if task.id == task_id:
-                return task
+                self.logger.debug("Trying to stop task {}".format(task.id))
+                task.stop()
+                self.logger.info("Stopping task {}...".format(task.id))
+                return
+
+    def running_task_names(self):
+        return [task.__class__.__name__ for task in self.tasks]
 
     def get_task_by_class(self, task_class):
         for task in self.tasks:

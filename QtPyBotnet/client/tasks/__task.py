@@ -98,8 +98,12 @@ class Task:
         """Wait for thread to finish."""
         if self.thread:
             return self.thread.join(timeout)
+        else:
+            return {"result": None, "exit_code": 0}
 
     def is_alive(self):
         """Check if thread is running."""
         if self.thread:
             return self.thread.is_alive()
+        else:
+            return False
