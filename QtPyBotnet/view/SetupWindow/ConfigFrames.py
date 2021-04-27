@@ -381,15 +381,9 @@ class FinishFrame(ConfigBaseFrame):
 
         self.finish_text = QLabel(self)
         self.finish_text.setWordWrap(True)
-        self.finish_text.setText("Setup finished. You can start tutorial or close this window. Happy hacking :)")
+        self.finish_text.setText("Setup finished. Click finish button to write settings to disk. Happy hacking :)")
         self.widget_layout.addWidget(self.finish_text)
-
-        self.tutorial_button = QCheckBox(self)
-        self.tutorial_button.setObjectName("tutorial_button")
-        self.tutorial_button.setText("Start tutorial")
-        self.tutorial_button.setEnabled(False)
-        self.widget_layout.addWidget(self.tutorial_button)
 
     @Slot()
     def collect_info(self):
-        return {"start_tutorial": self.tutorial_button.isChecked()}
+        return {}
