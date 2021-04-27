@@ -16,4 +16,11 @@ class GUIClient(QThreadedClient):
                     "task_id": task_id,
                     "event": "stop"})
 
+    @Slot(int, str, dict, int)
+    def send_task(self, bot_id, task, kwargs, user_activity):
+        self.write({"event_type": "task",
                     "bot_id": bot_id,
+                    "task": task,
+                    "kwargs": kwargs,
+                    "user_activity": user_activity,
+                    "event": "start"})

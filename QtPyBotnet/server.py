@@ -109,6 +109,7 @@ class Main(QObject):
         self.gui_server = GUIServer()
         self.gui_server.setObjectName("gui_server")
         self.gui_server.stop_task.connect(self.c2server.stop_task)
+        self.gui_server.start_task.connect(self.c2server.send_task)
         self.gui_server.start(ip, port, key)
         QMetaObject.connectSlotsByName(self)
 

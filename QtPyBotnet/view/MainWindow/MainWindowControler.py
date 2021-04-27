@@ -72,6 +72,7 @@ class MainWindow(FramelessWindow):
     @asyncSlot()
     async def on_task_button_clicked(self):
         self.task_window = TaskWindow(self)
+        self.task_window.send_task.connect(self.client.send_task)
         self.task_window.show()
 
     @asyncSlot(Bot)

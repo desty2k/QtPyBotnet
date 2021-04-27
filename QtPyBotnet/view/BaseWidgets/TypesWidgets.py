@@ -35,14 +35,8 @@ class StringListWidget(QListView):
         self.model.appendRow(item)
 
 
-class PixmapWidget(QLabel):
-    """PixmapWidget documentation"""
+class ListWidget(QWidget):
 
     def __init__(self, parent):
-        super(PixmapWidget, self).__init__(parent)
+        super(ListWidget, self).__init__(parent)
 
-
-class AutoTypeWidget(QWidget):
-
-    def __init__(self, parent):
-        super(AutoTypeWidget, self).__init__(parent)

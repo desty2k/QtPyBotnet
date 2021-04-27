@@ -1,6 +1,6 @@
 from qtpy.QtCore import QAbstractTableModel, Qt, QModelIndex, Signal
 
-from models.Events import Info, Module, Task
+from models.Events import Info, Task
 
 
 class TableModel(QAbstractTableModel):
@@ -49,18 +49,21 @@ class TableModel(QAbstractTableModel):
         event_type = message.get("event_type")
         if bot is not None and event_type is not None:
             if event_type == "task":
-                event = Task(bot_id, message.get("task_id"),
-                             message.get("task"),
-                             message.get("state"),
-                             message.get("result"),
-                             message.get("exit_code"))
-                bot.on_task_received(event)
+                task = bot.getTaskById(message.get("task_id"))
+                if not task:
+                    task = Task(bot_id,
+                                message.get("task_id"),
+                                message.get("task"),
+                                message.get("kwargs"),
+                                message.get("result"),
+                                message.get("exit_code"))
+                task.deserialize(message)
+                bot.on_task_received(task)
             elif event_type == "info":
-                event = Info(bot_id,
-                             message.get("info"),
-                             message.get("state"),
-                             message.get("results"))
-                bot.on_info_received(event)
+                info = Info(bot_id,
+                            message.get("info"),
+                            message.get("results"))
+                bot.on_info_received(info)
             self.repaint()
 
     def removeDevice(self, bot_id):

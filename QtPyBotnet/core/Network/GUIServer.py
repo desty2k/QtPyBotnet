@@ -10,6 +10,7 @@ from models import Task, Info
 class GUIServer(QThreadedServer):
     """GUI server."""
     stop_task = Signal(int, int)
+    start_task = Signal(int, str, dict, int)
 
     def __init__(self):
         super(GUIServer, self).__init__()
@@ -22,6 +23,9 @@ class GUIServer(QThreadedServer):
             if event == "stop":
                 self.stop_task.emit(message.get("bot_id"), message.get("task_id"))
 
+            elif event == "start":
+                self.start_task.emit(message.get("bot_id"), message.get("task"),
+                                     message.get("kwargs"), message.get("user_activity"))
 
     @asyncSlot(int, str, int)
     async def on_bot_connected(self, bot_id, ip, port):

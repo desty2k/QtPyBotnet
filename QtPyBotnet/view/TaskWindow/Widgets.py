@@ -1,8 +1,40 @@
 from qtpy.QtCore import Signal, Slot, Qt, QDateTime
-from qtpy.QtWidgets import (QWidget, QHBoxLayout, QGroupBox, QCheckBox, QLineEdit, QComboBox, QListWidget,
+from qtpy.QtWidgets import (QWidget, QHBoxLayout, QGroupBox, QCheckBox, QLineEdit, QComboBox, QListWidget, QPushButton,
                             QTextEdit, QSpinBox, QVBoxLayout, QRadioButton, QFormLayout, QLabel, QDateTimeEdit)
 
 from core.config import ConfigManager
+from models import Task
+
+
+class MainTaskWidget(QWidget):
+    send_task = Signal(int, str, dict, int)
+
+    def __init__(self, parent):
+        super(MainTaskWidget, self).__init__(parent)
+
+        self.widget_layout = QHBoxLayout(self)
+        self.setLayout(self.widget_layout)
+
+        self.selection_widget = TaskSelectionGroupBox(self)
+        self.widget_layout.addWidget(self.selection_widget)
+
+        self.kwargs_widget = TaskKwargsGroupBox(self)
+        self.widget_layout.addWidget(self.kwargs_widget)
+
+        self.time_widget = TaskOptionsGroupBox(self)
+        self.widget_layout.addWidget(self.time_widget)
+
+        self.send_button = QPushButton(self)
+        self.send_button.setText("Send")
+        self.widget_layout.addWidget(self.send_button)
+
+        self.send_button.clicked.connect(self.on_send_button_clicked)
+        self.selection_widget.selection_changed.connect(self.kwargs_widget.set_kwargs)
+
+    @Slot()
+    def on_send_button_clicked(self):
+        self.send_task.emit(0, self.selection_widget.get_task(),
+                            self.kwargs_widget.get_kwargs(), int(self.time_widget.get_options().get("user_activity")))
 
 
 class TaskOptionsGroupBox(QGroupBox):
@@ -49,32 +81,14 @@ class TaskOptionsGroupBox(QGroupBox):
             self.schedule_select.setEnabled(False)
 
     def get_options(self):
-        resp = {}
+        resp = {"user_activity": self.user_activity_combo.currentText().split(" - ")[0]}
+
         if self.time_now.isChecked():
             resp["time"] = "now"
 
         elif self.time_schedule.isChecked():
             resp["time"] = self.schedule_select.dateTime().toString()
-
-
-class MainTaskWidget(QWidget):
-
-    def __init__(self, parent):
-        super(MainTaskWidget, self).__init__(parent)
-
-        self.widget_layout = QHBoxLayout(self)
-        self.setLayout(self.widget_layout)
-
-        self.selection_widget = TaskSelectionGroupBox(self)
-        self.widget_layout.addWidget(self.selection_widget)
-
-        self.kwargs_widget = TaskKwargsGroupBox(self)
-        self.widget_layout.addWidget(self.kwargs_widget)
-
-        self.time_widget = TaskOptionsGroupBox(self)
-        self.widget_layout.addWidget(self.time_widget)
-
-        self.selection_widget.selection_changed.connect(self.kwargs_widget.set_kwargs)
+        return resp
 
 
 class TaskSelectionGroupBox(QGroupBox):
@@ -101,9 +115,8 @@ class TaskSelectionGroupBox(QGroupBox):
             if task.__name__ == name:
                 return task
 
-    @Slot()
-    def on_send_button_clicked(self):
-        self.send_task.emit(int(self.bot_edit.value()), str(self.combo.currentText()))
+    def get_task(self):
+        return self.combo.currentText()
 
 
 class TaskKwargsGroupBox(QGroupBox):

