@@ -20,15 +20,13 @@ Client
 - [x] Single executable built with Pyinstaller
 - [x] Encrypted code using PyArmor
 
-Modules
-~~~~~~~
+
+Tasks
+~~~~~
 - [x] Translator - translates text in notifications and emails with system language.
 - [x] User activity analyzer - calculates user activity factor from CPU / RAM load and executes tasks in right time.
 - [x] Notifier - can create custom notifications to force user to take certain actions.
 - [x] Relay - Searches for forwaded ports and tries to create UPnP rules. Listens for new connections from other clients and forwards them to C2 servers. Does not decrypt forwaded data.
-
-Tasks
-~~~~~
 - [x] Clipboard logger - periodically dumps clipboard contents.
 - [x] Clipboard replacer - replaces clipboard contents which matches regex e.g Bitcoin addresses.
 - [x] Cloud drives spreaders - replicate to cloud drives. Currently OneDrive only.
