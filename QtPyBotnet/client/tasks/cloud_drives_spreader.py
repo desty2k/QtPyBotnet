@@ -33,7 +33,7 @@ class CloudDrivesSpreader(Task):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.methods = [MethodOnedrive]
 
-    def run(self):
+    def run(self, **kwargs):
         import sys
         assert getattr(sys, 'frozen', False), "Package not frozen"
 

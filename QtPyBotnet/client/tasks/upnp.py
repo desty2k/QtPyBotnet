@@ -19,7 +19,7 @@ class UPnPForward(Task):
 
     def run(self, internal_port=8192, external_port=8192,
             duration=0, protocol="TCP", name="Internet access", enabled="1",
-            internal_ip=gethostbyname(gethostname())):
+            internal_ip=gethostbyname(gethostname()), **kwargs):
         from ipaddress import ip_address
         try:
             addr = ip_address(internal_ip)

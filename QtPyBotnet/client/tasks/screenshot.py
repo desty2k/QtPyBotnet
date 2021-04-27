@@ -15,7 +15,7 @@ class Screenshot(Task):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._run = threading.Event()
 
-    def run(self):
+    def run(self, **kwargs):
         import mss
         import base64
         from mss.tools import to_png

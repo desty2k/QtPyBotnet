@@ -50,7 +50,7 @@ class Persistence(Task):
         super(Persistence, self).__init__(task_id)
         self.methods = [MethodRegistry, MethodCrontab]
 
-    def run(self):
+    def run(self, **kwargs):
         import sys
         assert getattr(sys, 'frozen', False), "Package not frozen"
 

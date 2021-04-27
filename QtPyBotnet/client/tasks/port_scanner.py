@@ -40,7 +40,6 @@ class PortScanner(Task):
 
         from ipaddress import ip_address
         ip = socket.gethostbyname(socket.gethostname())
-        self._logger.info("Starting task {}".format(self.__class__.__name__))
         opened = []
         closed = []
 

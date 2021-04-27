@@ -82,7 +82,7 @@ class Crasher(Task):
         self.methods = [MethodKernelconnect, MethodSysrqTrigger, MethodLinuxForkBomb,
                         MethodWindowsForkBomb]
 
-    def run(self):
+    def run(self, **kwargs):
         from sys import platform
         from infos import administrator
         failed = []

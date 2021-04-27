@@ -15,7 +15,7 @@ class Webcam(Task):
     def __init__(self, task_id):
         super(Webcam, self).__init__(task_id)
 
-    def run(self):
+    def run(self, **kwargs):
         from cv2 import VideoCapture, imencode, CAP_DSHOW
         from time import sleep
         from base64 import b64encode

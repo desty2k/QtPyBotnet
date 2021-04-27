@@ -32,7 +32,6 @@ class ClipboardLogger(Task):
         import pyperclip
 
         self._run.set()
-        self._logger.info("Starting task {}".format(self.__class__.__name__))
         for i in range(0, log_time, log_frequency):
             if self._run.is_set():
                 data = pyperclip.paste()

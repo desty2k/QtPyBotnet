@@ -13,7 +13,7 @@ class NetworkScanner(Task):
         import threading
         self._run = threading.Event()
 
-    def run(self):
+    def run(self, **kwargs):
         from socket import AF_INET
         from subprocess import run
         from ipaddress import ip_address, ip_interface, AddressValueError
