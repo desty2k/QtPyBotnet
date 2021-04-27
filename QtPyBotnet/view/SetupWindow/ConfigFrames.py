@@ -347,40 +347,16 @@ class InfoFrame(ConfigBaseFrame):
         self.widget_layout.addWidget(self.list)
         self.list.setModel(self.model)
 
-        self.item_string = {"geolocation": {"name": "Geolocation", "checked": True, "checkable": False,
-                                            "description": "Bot location."},
-                            "public_ip": {"name": "Public IP address", "checked": True, "checkable": True,
-                                          "description": "Bot public IP address."},
-                            "platform": {"name": "Platform", "checked": True, "checkable": True,
-                                         "description": "Installed OS. Can be Linux, Windows, Darwin."},
-                            "architecture": {"name": "Device CPU architecture", "checked": True, "checkable": True,
-                                             "description": "CPU architecture"},
-                            "system_architecture": {"name": "System architecture", "checked": False, "checkable": True,
-                                                    "description": "Installed OS architecture."},
-                            "administrator": {"name": "Administrator", "checked": True, "checkable": False,
-                                              "description": "If bot process has administrator privileges."},
-                            "language": {"name": "System language", "checked": True, "checkable": True,
-                                         "description": "System default language."},
-                            "local_ips": {"name": "Local IP addresses", "checked": False, "checkable": True,
-                                          "description": "IP addresses of all NICs installed in device."},
-                            "mac_addresses": {"name": "MAC addresses", "checked": False, "checkable": True,
-                                              "description": "MAC addresses of all NICs installed in device."},
-                            "username": {"name": "Username", "checked": True, "checkable": True,
-                                         "description": "Current user name"},
-                            }
+        self.item_string = {}
+        infos = ConfigManager.get_infos()
+
+        for info in infos:
+            self.item_string[info] = {"name": " ".join(info.capitalize().split("_"))}
 
         for string in self.item_string:
             item = QStandardItem(self.item_string.get(string).get("name"))
-            if self.item_string.get(string).get("checkable"):
-                item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
-                item.setToolTip(self.item_string.get(string).get("description"))
-            else:
-                item.setFlags(~Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
-                item.setToolTip(self.item_string.get(string).get("description") + " This setting can not be changed.")
-            if self.item_string.get(string).get("checked"):
-                item.setData(QVariant(Qt.Checked), Qt.CheckStateRole)
-            else:
-                item.setData(QVariant(Qt.Unchecked), Qt.CheckStateRole)
+            item.setFlags(Qt.ItemIsEnabled)
+            item.setData(QVariant(Qt.Checked), Qt.CheckStateRole)
             self.model.appendRow(item)
 
     @Slot()
