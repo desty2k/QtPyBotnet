@@ -18,6 +18,7 @@ class Task:
         super(Task, self).__init__()
         self.id = task_id
 
+        self.run_kwargs = {}
         self.result = result
         self.exit_code = exit_code
         self.user_activity = user_activity
@@ -46,6 +47,9 @@ class Task:
                 "result": self.result,
                 "exit_code": self.exit_code,
                 "state": state}
+
+    def set_run_kwargs(self, kwargs):
+        self.run_kwargs = kwargs
 
     def set_finished(self, result, exit_code):
         """Updates task with result and exit code."""
