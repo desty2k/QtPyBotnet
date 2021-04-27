@@ -24,7 +24,8 @@ class Task:
         self.user_activity = user_activity
 
         self.thread = None
-        self.progress = queue.Queue()
+        self.started = False
+        self.status = queue.Queue()
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def serialize(self):
@@ -44,8 +45,20 @@ class Task:
                 "exit_code": self.exit_code,
                 "state": state}
 
+    def was_started(self):
+        return self.started
+
     def set_run_kwargs(self, kwargs):
         self.run_kwargs = kwargs
+
+    def get_status(self):
+        return self.status.get()
+
+    def status_available(self):
+        return not self.status.empty()
+
+    def put_status(self, value):
+        self.status.put(value)
 
     def set_finished(self, result, exit_code):
         """Updates task with result and exit code."""
