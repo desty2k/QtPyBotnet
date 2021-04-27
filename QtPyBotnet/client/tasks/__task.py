@@ -1,7 +1,7 @@
 import queue
 import logging
 
-from utils import dateToStr, threaded
+from utils import threaded
 
 
 class Task:
@@ -22,8 +22,6 @@ class Task:
         self.result = result
         self.exit_code = exit_code
         self.user_activity = user_activity
-        self.time_started = None
-        self.time_finished = None
 
         self.thread = None
         self.progress = queue.Queue()
@@ -41,8 +39,6 @@ class Task:
         return {"event_type": "task",
                 "task_id": self.id,
                 "task": self.__class__.__name__,
-                "time_started": dateToStr(self.time_started),
-                "time_finished": dateToStr(self.time_finished),
                 "user_activity": self.user_activity,
                 "result": self.result,
                 "exit_code": self.exit_code,
