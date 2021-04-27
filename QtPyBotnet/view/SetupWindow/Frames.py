@@ -2,8 +2,7 @@ from qtpy.QtWidgets import (QWidget, QVBoxLayout, QDialogButtonBox, QGridLayout)
 from qtpy.QtCore import (Signal, QMetaObject, Slot)
 
 from view.BaseWidgets import BaseFrame
-from view.SetupWindow.ConfigFrames import (TermsFrame, KeyFrame, ServerFrame, InfoFrame, TaskFrame,
-                                           ModuleFrame, FinishFrame, GUIFrame)
+from view.SetupWindow.ConfigFrames import (TermsFrame, KeyFrame, ServerFrame, InfoFrame, FinishFrame, GUIFrame)
 
 
 class ConfigFrame(BaseFrame):
@@ -13,8 +12,7 @@ class ConfigFrame(BaseFrame):
 
     def __init__(self, parent=None):
         super(ConfigFrame, self).__init__(parent)
-        self.config_frames = [TermsFrame, KeyFrame, GUIFrame, ServerFrame, InfoFrame, TaskFrame,
-                              ModuleFrame, FinishFrame]
+        self.config_frames = [TermsFrame, KeyFrame, GUIFrame, ServerFrame, InfoFrame, FinishFrame]
         self.frames_instances = []
         self.current_frame = 0
 

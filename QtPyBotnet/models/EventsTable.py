@@ -113,16 +113,6 @@ class TasksTableModel(EventsTableModel):
         ]
 
 
-class ModulesTableModel(EventsTableModel):
-
-    def __init__(self, parent=None):
-        super(ModulesTableModel, self).__init__(parent)
-        self.hheaders = [
-            {"text": "Module", "contains": "module"},
-            {"text": "Enabled", "contains": "enabled"},
-        ]
-
-
 class InfosTableModel(EventsTableModel):
 
     def __init__(self, parent=None):

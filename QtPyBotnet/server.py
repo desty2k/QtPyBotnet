@@ -1,4 +1,3 @@
-import os
 import sys
 import asyncio
 import logging
@@ -109,7 +108,6 @@ class Main(QObject):
     async def setup_gui_server(self, ip, port, key):
         self.gui_server = GUIServer()
         self.gui_server.setObjectName("gui_server")
-        self.gui_server.toggle_module.connect(self.c2server.send_module)
         self.gui_server.stop_task.connect(self.c2server.stop_task)
         self.gui_server.start(ip, port, key)
         QMetaObject.connectSlotsByName(self)
@@ -126,7 +124,6 @@ class Main(QObject):
         self.c2server.assigned.connect(self.on_bot_connected)
         self.c2server.disconnected.connect(self.gui_server.on_bot_disconnected)
         self.c2server.task.connect(self.gui_server.on_bot_task)
-        self.c2server.module.connect(self.gui_server.on_bot_module)
         self.c2server.info.connect(self.gui_server.on_bot_info)
         self.c2server.start(HOST, PORT)
 
@@ -134,12 +131,7 @@ class Main(QObject):
     async def on_bot_connected(self, bot_id, ip, port):
         """Execute tasks and enable modules after connecting to client."""
         infos = self.config_manager.value("after_connection_infos")
-        tasks = self.config_manager.value("after_connection_tasks")
-        modules = self.config_manager.value("after_connection_modules")
-        # self.c2server.send_assign_message(bot_id)
         self.c2server.send_info(bot_id, infos)
-        self.c2server.send_after_connection_modules(bot_id, modules)
-        self.c2server.send_after_connection_tasks(bot_id, tasks)
         self.gui_server.on_bot_connected(bot_id, ip, port)
 
     # C2 server END ////////////////////////////////////////////////////////////////////////////////////////////////////

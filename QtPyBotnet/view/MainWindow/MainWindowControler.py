@@ -77,7 +77,6 @@ class MainWindow(FramelessWindow):
     @asyncSlot(Bot)
     async def on_bot_double_clicked(self, bot: Bot):
         self.device_window = DeviceWindow(bot, self)
-        self.device_window.toggle_module.connect(self.client.toggle_module)
         self.device_window.stop_task.connect(self.client.stop_task)
         self.device_window.show()
 
@@ -115,7 +114,6 @@ class MainWindow(FramelessWindow):
         """Triggered when GUI client receive message from GUI server."""
         self.console.write(message)
         bot_id = message.get("bot_id")
-
         if bot_id:
             event_type = message.get("event_type")
             if event_type == "connection":
@@ -128,7 +126,7 @@ class MainWindow(FramelessWindow):
                 elif event == "disconnected":
                     self.content_widget.remove_bot(bot_id)
 
-            elif event_type in ("info", "module", "task"):
+            elif event_type in ("info", "task"):
                 self.content_widget.update_bot(bot_id, message)
 
     @asyncSlot(str)

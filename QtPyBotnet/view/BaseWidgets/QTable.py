@@ -49,17 +49,6 @@ class QTable(QTableView):
             self.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch)
 
 
-class ModulesTable(QTable):
-    context_menu_requested = Signal(str)
-
-    def __init__(self, *args, **kwargs):
-        super(ModulesTable, self).__init__(*args, **kwargs)
-
-    @Slot(QPoint)
-    def on_customContextMenuRequested(self, pos: QPoint):
-        self.context_menu_requested.emit(str(self.model().index(self.rowAt(pos.y()), 0).data()))
-
-
 class TasksTable(QTable):
     context_menu_requested = Signal(int)
 

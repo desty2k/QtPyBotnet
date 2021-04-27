@@ -31,7 +31,6 @@ class Bot(Device):
         self.creation_time = datetime.datetime.now()
 
         self.tasks = []
-        self.modules = []
         self.next_task_id = 0
         self.update(kwargs)
 
@@ -59,17 +58,9 @@ class Bot(Device):
         data = {}
         for result in info.results:
             util = info.results.get(result)
-
-            if result == "modules":
-                for module in util:
-                    ev = Module(info.get_bot_id(), module.get("name"), module.get("enabled"))
-                    self.on_module_received(ev)
-
-            elif result == "tasks":
                 for task in util:
                     ev = Task(info.get_bot_id(), task.get("task_id"), task.get("task"), task.get("state"))
                     self.on_task_received(ev)
-
             else:
                 if util.get("exit_code") == 0:
                     data[result] = util.get("result")
@@ -78,16 +69,6 @@ class Bot(Device):
                 else:
                     data[result] = "Unknown"
         self.update(data)
-
-    @Slot(Module)
-    def on_module_received(self, module: Module):
-        """Triggered when module's state changes"""
-        for bot_module in self.modules:
-            if bot_module.module == module.module:
-                bot_module.update(module)
-                return
-        self.modules.append(module)
-        self.updated.emit()
 
     @Slot(Task)
     def on_task_received(self, task: Task):

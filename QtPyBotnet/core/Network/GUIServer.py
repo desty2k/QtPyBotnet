@@ -4,13 +4,12 @@ from QtPyNetwork.server import QThreadedServer
 
 from qasync import asyncSlot
 
-from models import Task, Module, Info
+from models import Task, Info
 
 
 class GUIServer(QThreadedServer):
     """GUI server."""
     stop_task = Signal(int, int)
-    toggle_module = Signal(int, str, bool)
 
     def __init__(self):
         super(GUIServer, self).__init__()
@@ -23,8 +22,6 @@ class GUIServer(QThreadedServer):
             if event == "stop":
                 self.stop_task.emit(message.get("bot_id"), message.get("task_id"))
 
-        elif message.get("event_type") == "module":
-            self.toggle_module.emit(message.get("bot_id"), message.get("module"), message.get("state"))
 
     @asyncSlot(int, str, int)
     async def on_bot_connected(self, bot_id, ip, port):
@@ -43,10 +40,6 @@ class GUIServer(QThreadedServer):
     @asyncSlot(Task)
     async def on_bot_task(self, task):
         self.writeAll(task.serialize())
-
-    @asyncSlot(Module)
-    async def on_bot_module(self, module):
-        self.writeAll(module.serialize())
 
     @asyncSlot(Info)
     async def on_bot_info(self, info):

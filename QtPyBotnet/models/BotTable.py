@@ -55,11 +55,6 @@ class TableModel(QAbstractTableModel):
                              message.get("result"),
                              message.get("exit_code"))
                 bot.on_task_received(event)
-            elif event_type == "module":
-                event = Module(bot_id,
-                               message.get("module"),
-                               message.get("enabled"))
-                bot.on_module_received(event)
             elif event_type == "info":
                 event = Info(bot_id,
                              message.get("info"),

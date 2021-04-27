@@ -3,10 +3,10 @@ from qtpy.QtCore import Signal, Slot
 from qtpy.QtGui import QCursor, QCloseEvent
 
 from models import Task
-from models.EventsTable import TasksTableModel, ModulesTableModel
+from models.EventsTable import TasksTableModel
 
+from view.BaseWidgets.QTable import TasksTable
 from view.DeviceWindow.TaskWindow import TaskWindow
-from view.BaseWidgets.QTable import TasksTable, ModulesTable
 
 
 class WidgetWithCloseSignal(QWidget):
@@ -176,43 +176,4 @@ class DeviceTasksWidget(WidgetWithCloseSignal):
         stop_action = QAction('Stop', self)
         stop_action.triggered.connect(lambda: self.stop_task.emit(self.bot_id, task_id))
         self.menu.addAction(stop_action)
-        self.menu.popup(QCursor.pos())
-
-
-class DeviceModulesWidget(WidgetWithCloseSignal):
-    """Shows modules and its states."""
-    toggle_module = Signal(int, str, bool)
-
-    def __init__(self, bot, parent):
-        super(DeviceModulesWidget, self).__init__(parent)
-        self.tab_name = "Modules"
-        self.bot_id = bot.get_id()
-
-        self.widget_layout = QHBoxLayout(self)
-        self.setLayout(self.widget_layout)
-        self.table = ModulesTable(self)
-        self.table.context_menu_requested.connect(self.showContextMenu)
-        self.widget_layout.addWidget(self.table)
-
-        self.model = ModulesTableModel(self)
-        self.model.setEvents(bot.modules)
-        bot.updated.connect(lambda: self.model.setEvents(bot.modules))
-        self.closed.connect(lambda: self.disconnectSignal(bot.updated))
-        self.table.setModel(self.model)
-
-    def updateModules(self, data):
-        self.model.setEvents(data)
-
-    @Slot(str)
-    def showContextMenu(self, module_name) -> None:
-        self.menu = QMenu(self)
-        enable_action = QAction('Enable', self)
-        enable_action.triggered.connect(
-            lambda: self.toggle_module.emit(self.bot_id, module_name, True))
-        self.menu.addAction(enable_action)
-
-        disable_action = QAction('Disable', self)
-        disable_action.triggered.connect(
-            lambda: self.toggle_module.emit(self.bot_id, module_name, False))
-        self.menu.addAction(disable_action)
         self.menu.popup(QCursor.pos())

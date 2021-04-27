@@ -110,14 +110,6 @@ class MainWidget(QWidget):
         self.task_button.clicked.connect(self.task_button_clicked.emit)
         self.task_button.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/list-check.svg")))
 
-        self.modules_button = QPushButton(self.buttonsWidget)
-        self.modules_button.setToolTip("Enable/disable modules")
-        self.modules_button.setSizePolicy(sizepolicy)
-        self.modules_button.setMinimumSize(btn_size)
-        self.modules_button.setIconSize(self.modules_button.size())
-        # self.modules_button.clicked.connect()
-        self.modules_button.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/apps.svg")))
-
         self.disconnect_button = QPushButton(self.buttonsWidget)
         self.disconnect_button.setToolTip("Disconnect")
         self.disconnect_button.setSizePolicy(sizepolicy)
@@ -136,7 +128,6 @@ class MainWidget(QWidget):
 
         self.buttonsWidgetLayout.addWidget(self.payload_button)
         self.buttonsWidgetLayout.addWidget(self.task_button)
-        self.buttonsWidgetLayout.addWidget(self.modules_button)
         self.buttonsWidgetLayout.addWidget(self.disconnect_button)
         self.buttonsWidgetLayout.addWidget(self.close_button)
 
