@@ -1,12 +1,11 @@
 from qrainbowstyle.windows import FramelessWarningMessageBox
-from qtpy.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit, QDialogButtonBox, QApplication,
-                            QGraphicsOpacityEffect, QDialog)
-from qtpy.QtCore import (Signal, QMetaObject, Slot, QSize, QPropertyAnimation, QSequentialAnimationGroup, Qt)
+from qtpy.QtWidgets import QPushButton, QDialogButtonBox
+from qtpy.QtCore import Signal, QMetaObject, Slot, Qt
 
 import logging
 
-from view.BaseWidgets import BotnetWindow
-from view.SetupWindow.Frames import ConfigFrame
+from view.BaseWidgets import BotnetWindow, FramesWidget
+from view.SetupWindow.ConfigFrames import TermsFrame, KeyFrame, ServerFrame, InfoFrame, FinishFrame, GUIFrame
 
 
 class SetupDialog(BotnetWindow):
@@ -26,7 +25,9 @@ class SetupDialog(BotnetWindow):
         self.start_button.setVisible(True)
         self.addSubContentWidget(self.start_button)
 
-        self.config_frame = ConfigFrame(self)
+        self.config_frame = FramesWidget(self)
+        self.config_frame.add_frames([TermsFrame, KeyFrame, GUIFrame, ServerFrame, InfoFrame, FinishFrame])
+
         self.config_frame.setObjectName("config_frame")
         self.config_frame.setVisible(False)
         self.addSubContentWidget(self.config_frame)

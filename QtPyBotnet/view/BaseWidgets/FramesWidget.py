@@ -2,17 +2,16 @@ from qtpy.QtWidgets import (QWidget, QVBoxLayout, QDialogButtonBox, QGridLayout)
 from qtpy.QtCore import (Signal, QMetaObject, Slot)
 
 from view.BaseWidgets import BaseFrame
-from view.SetupWindow.ConfigFrames import (TermsFrame, KeyFrame, ServerFrame, InfoFrame, FinishFrame, GUIFrame)
 
 
-class ConfigFrame(BaseFrame):
+class FramesWidget(BaseFrame):
     rejected = Signal()
     accepted = Signal()
     back = Signal()
 
     def __init__(self, parent=None):
-        super(ConfigFrame, self).__init__(parent)
-        self.config_frames = [TermsFrame, KeyFrame, GUIFrame, ServerFrame, InfoFrame, FinishFrame]
+        super(FramesWidget, self).__init__(parent)
+        self.config_frames = []
         self.frames_instances = []
         self.current_frame = 0
 
@@ -26,21 +25,25 @@ class ConfigFrame(BaseFrame):
         self.widget_layout.addWidget(self.frames_widget)
 
         self.btn_box = QDialogButtonBox(self)
-        self.btn_box.setObjectName("config_btn_box")
+        self.btn_box.setObjectName("btn_box")
         self.btn_box.setStandardButtons(QDialogButtonBox.Reset | QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
         self.btn_box.button(QDialogButtonBox.Reset).setText("Back")
         self.btn_box.button(QDialogButtonBox.Ok).setText("Next")
         self.widget_layout.addWidget(self.btn_box)
 
-        self.btn_box.button(QDialogButtonBox.Reset).clicked.connect(self.on_config_btn_box_resetted)
+        self.btn_box.button(QDialogButtonBox.Reset).clicked.connect(self.on_btn_box_resetted)
         QMetaObject.connectSlotsByName(self)
 
-        for frame in self.config_frames:
-            f = frame(self.frames_widget)
-            f.setVisible(False)
-            f.set_next_enabled.connect(self.btn_box.button(QDialogButtonBox.Ok).setEnabled)
-            self.frames_widget_layout.addWidget(f, 0, 0, 1, 1)
-            self.frames_instances.append(f)
+    def add_frames(self, frames):
+        for frame in frames:
+            self.add_frame(frame)
+
+    def add_frame(self, frame):
+        f = frame(self.frames_widget)
+        f.setVisible(False)
+        f.set_next_enabled.connect(self.btn_box.button(QDialogButtonBox.Ok).setEnabled)
+        self.frames_widget_layout.addWidget(f, 0, 0, 1, 1)
+        self.frames_instances.append(f)
 
         if len(self.frames_instances) > 0:
             self.frames_instances[0].setVisible(True)
@@ -56,12 +59,12 @@ class ConfigFrame(BaseFrame):
         return settings
 
     @Slot()
-    def on_config_btn_box_rejected(self):
+    def on_btn_box_rejected(self):
         """When user clicks cancel button"""
         self.rejected.emit()
 
     @Slot()
-    def on_config_btn_box_accepted(self):
+    def on_btn_box_accepted(self):
         """On Next button clicked"""
         if self.current_frame + 1 < len(self.frames_instances):
             # if not last
@@ -81,7 +84,7 @@ class ConfigFrame(BaseFrame):
             self.accepted.emit()
 
     @Slot()
-    def on_config_btn_box_resetted(self):
+    def on_btn_box_resetted(self):
         """On Back button clicked."""
         if self.current_frame > 0:
             self.frames_instances[self.current_frame].setVisible(False)
