@@ -32,15 +32,9 @@ def public_ip():
 
 
 def architecture():
-    """Check if host machine has 32-bit or 64-bit processor architecture"""
-    import struct
-    return int(struct.calcsize('P') * 8)
-
-
-def system_architecture():
     """Check if host machine has 32-bit or 64-bit system installed"""
-    import platform
-    return int(platform.architecture()[0].replace("bit", ""))
+    from struct import calcsize
+    return int(calcsize('P') * 8)
 
 
 def administrator():
@@ -52,8 +46,8 @@ def administrator():
 
 def username():
     """Returns current user name."""
-    import getpass
-    return getpass.getuser()
+    from getpass import getuser
+    return getuser()
 
 
 def is_running_in_docker():

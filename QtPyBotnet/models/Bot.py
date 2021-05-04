@@ -22,7 +22,6 @@ class Bot(Device):
         self.geolocation = "Unknown"
         self.platform = "Unknown"
         self.architecture = "Unknown"
-        self.system_architecture = "Unknown"
         self.username = "Unknown"
         self.administrator = "Unknown"
         self.language = "Unknown"
