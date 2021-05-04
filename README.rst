@@ -64,8 +64,6 @@ Preview images
 
 .. image:: https://raw.githubusercontent.com/desty2k/QtPyBotnet/master/images/preview-img-4.jpg
 
-.. image:: https://raw.githubusercontent.com/desty2k/QtPyBotnet/master/images/preview-img-5.jpg
-
 
 Installation
 ------------
