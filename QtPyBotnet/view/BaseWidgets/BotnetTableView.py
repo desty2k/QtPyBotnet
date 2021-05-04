@@ -4,12 +4,12 @@ from qtpy.QtCore import Qt, Signal, QPoint, Slot, QModelIndex
 from models import Task
 
 
-class QTable(QTableView):
+class TaskTableView(QTableView):
     context_menu_requested = Signal(int)
     task_double_clicked = Signal(Task)
 
     def __init__(self, *args, **kwargs):
-        super(QTable, self).__init__(*args, **kwargs)
+        super(TaskTableView, self).__init__(*args, **kwargs)
 
         self.setAutoFillBackground(True)
         self.setFrameShape(QFrame.StyledPanel)
@@ -49,12 +49,18 @@ class QTable(QTableView):
             self.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch)
 
 
-class TasksTable(QTable):
+class TasksTableView(TaskTableView):
     context_menu_requested = Signal(int)
 
     def __init__(self, *args, **kwargs):
-        super(TasksTable, self).__init__(*args, **kwargs)
+        super(TasksTableView, self).__init__(*args, **kwargs)
 
     @Slot(QPoint)
     def on_customContextMenuRequested(self, pos: QPoint):
-        self.context_menu_requested.emit(int(self.model().index(self.rowAt(pos.y()), 0).data()))
+        item = self.model().index(self.rowAt(pos.y()), 0).data()
+        try:
+            item = int(item)
+            self.context_menu_requested.emit(item)
+        except ValueError:
+            pass
+

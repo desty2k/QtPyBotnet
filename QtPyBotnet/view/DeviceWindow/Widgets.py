@@ -5,7 +5,7 @@ from qtpy.QtGui import QCursor, QCloseEvent
 from models import Task, Bot
 from models.EventsTable import TasksTableModel
 
-from view.BaseWidgets.QTable import TasksTable
+from view.BaseWidgets.BotnetTableView import TasksTableView
 from view.DeviceWindow.TaskWindow import TaskWindow
 
 
@@ -76,7 +76,7 @@ class DeviceTasksWidget(WidgetWithCloseSignal):
 
         self.widget_layout = QHBoxLayout(self)
         self.setLayout(self.widget_layout)
-        self.table = TasksTable(self)
+        self.table = TasksTableView(self)
         self.table.context_menu_requested.connect(self.showContextMenu)
         self.table.task_double_clicked.connect(self.showTaskWindow)
         self.widget_layout.addWidget(self.table)
