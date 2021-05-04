@@ -27,6 +27,11 @@ class Info(Event):
     def get_results(self):
         return self.results
 
+    def create(self):
+        return {"event_type": "info",
+                "bot_id": self.bot_id,
+                "info": self.info}
+
     def serialize(self):
         return {"event_type": "info",
                 "bot_id": self.bot_id,
@@ -58,9 +63,10 @@ class Task(Event):
         self.exit_code = exit_code
         self.user_activity = 0
 
+        self.time_created = None
         self.time_started = None
         self.time_finished = None
-        self.state = "Queued"
+        self.state = None
 
     def get_id(self):
         return self.id
@@ -76,6 +82,10 @@ class Task(Event):
             self.set_running(task.time_started)
         if task.is_finished():
             self.set_finished(task.time_finished, task.result, task.exit_code)
+
+    def set_created(self, time_started):
+        self.time_created = time_started
+        self.state = "Queued"
 
     def set_running(self, time_started):
         self.time_started = time_started

