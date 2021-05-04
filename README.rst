@@ -18,6 +18,7 @@ Client
 - [x] Encrypted socket connection
 - [x] Encryption key negotiating after successfull connection
 - [x] Single executable built with Pyinstaller
+- [x] Cross platform payload generator (win32, win64, i386, amd64)
 - [x] Encrypted code using PyArmor
 
 
@@ -96,6 +97,3 @@ If you want to reset configuration use
     .. code:: bash
 
         python server.py --reset
-
-6. To compile client use build script from QtPyBotnet/core/build.py
-
