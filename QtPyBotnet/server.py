@@ -16,6 +16,7 @@ from __init__ import __version__, __app_name__
 from core.Network import GUIServer, C2Server
 from core.config import ConfigManager
 from core.logger import Logger
+from utils import MessageDecoder, MessageEncoder
 from view.LoginWindow import LoginDialog
 from view.MainWindow import MainWindow
 from view.SetupWindow import SetupDialog
@@ -111,6 +112,8 @@ class Main(QObject):
         self.gui_server.stop_task.connect(self.c2server.stop_task)
         self.gui_server.start_task.connect(self.c2server.send_task)
         self.gui_server.start(ip, port, key)
+        self.gui_server.setJSONDecoder(MessageDecoder)
+        self.gui_server.setJSONEncoder(MessageEncoder)
         QMetaObject.connectSlotsByName(self)
 
     # GUI server END ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,14 +122,13 @@ class Main(QObject):
     @asyncSlot()
     async def setup_c2_server(self):
         """Setup C2 handler."""
-        HOST = self.config_manager.value("c2_ip")
-        PORT = self.config_manager.value("c2_port")
-
         self.c2server.assigned.connect(self.on_bot_connected)
         self.c2server.disconnected.connect(self.gui_server.on_bot_disconnected)
         self.c2server.task.connect(self.gui_server.on_bot_task)
         self.c2server.info.connect(self.gui_server.on_bot_info)
-        self.c2server.start(HOST, PORT)
+        self.c2server.start(self.config_manager.value("c2_ip"), self.config_manager.value("c2_port"))
+        self.c2server.setJSONDecoder(MessageDecoder)
+        self.c2server.setJSONEncoder(MessageEncoder)
 
     @asyncSlot(int, str, int)
     async def on_bot_connected(self, bot_id, ip, port):

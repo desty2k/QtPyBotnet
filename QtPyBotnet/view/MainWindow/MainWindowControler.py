@@ -11,6 +11,7 @@ from qasync import asyncSlot
 
 from models import Bot
 from core.Network import GUIClient
+from utils import MessageDecoder, MessageEncoder
 from view.TaskWindow import TaskWindow
 from view.ConsoleWindow import Console
 from view.MainWindow import TitlebarMenu, MainWidget
@@ -93,6 +94,8 @@ class MainWindow(FramelessWindow):
     @asyncSlot(str, int, str)
     async def start_gui_client(self, ip, port, key):
         self.client.start(ip, port, key)
+        self.client.setJSONDecoder(MessageDecoder)
+        self.client.setJSONEncoder(MessageEncoder)
 
     @asyncSlot()
     async def on_show_console_triggered(self):

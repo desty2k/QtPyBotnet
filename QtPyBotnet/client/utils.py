@@ -117,6 +117,12 @@ import json
 import datetime
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+TYPES = {int: "type_int",
+         float: "type_float",
+         str: "type_str",
+         list: "type_list",
+         dict: "type_dict",
+         bool: "type_bool"}
 
 
 class MessageEncoder(json.JSONEncoder):
@@ -127,6 +133,11 @@ class MessageEncoder(json.JSONEncoder):
                 "_type": "datetime",
                 "value": obj.strftime(DATETIME_FORMAT)
             }
+        elif obj in TYPES:
+            return {
+                "_type": "python_type",
+                "value": TYPES[obj]
+            }
         return super(MessageEncoder, self).default(obj)
 
 
@@ -135,9 +146,12 @@ class MessageDecoder(json.JSONDecoder):
         super(MessageDecoder, self).__init__(object_hook=self.object_hook, *args, **kwargs)
 
     def object_hook(self, obj):
-        if '_type' not in obj:
-            return obj
-        obj_type = obj['_type']
-        if obj_type == 'datetime':
-            return datetime.datetime.strptime(obj["value"], DATETIME_FORMAT)
+        if "_type" in obj:
+            obj_type = obj['_type']
+            if obj_type == 'datetime':
+                return datetime.datetime.strptime(obj["value"], DATETIME_FORMAT)
+            elif obj_type == "python_type":
+                for key, value in TYPES.items():
+                    if value == obj["value"]:
+                        return key
         return obj
