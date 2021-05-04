@@ -111,8 +111,26 @@ class Main(QObject):
     async def setup_gui_server(self, ip, port, key):
         self.gui_server = GUIServer()
         self.gui_server.setObjectName("gui_server")
+
+        self.config_manager.available_tasks.connect(self.gui_server.on_get_tasks)
+
         self.gui_server.stop_task.connect(self.c2server.stop_task)
         self.gui_server.start_task.connect(self.c2server.send_task)
+        self.gui_server.get_tasks.connect(self.config_manager.on_gui_client_get_tasks)
+
+        self.builder.build_error.connect(self.gui_server.on_build_error)
+        self.builder.build_stopped.connect(self.gui_server.on_build_stopped)
+        self.builder.build_options.connect(self.gui_server.on_build_options)
+        self.builder.build_finished.connect(self.gui_server.on_build_finished)
+
+        self.builder.generator_progress.connect(self.gui_server.on_generator_progress)
+        self.builder.generator_finished.connect(self.gui_server.on_generator_finished)
+        self.builder.generator_started.connect(self.gui_server.on_generator_started)
+
+        self.gui_server.build_options.connect(self.builder.get_options)
+        self.gui_server.build_stop.connect(self.builder.stop)
+        self.gui_server.build_start.connect(self.builder.start)
+
         self.gui_server.start(ip, port, key)
         self.gui_server.setJSONDecoder(MessageDecoder)
         self.gui_server.setJSONEncoder(MessageEncoder)

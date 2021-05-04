@@ -2,7 +2,7 @@ import os
 import json
 import logging
 
-from qtpy.QtCore import Signal, QObject
+from qtpy.QtCore import Signal, QObject, Slot
 
 from core.crypto import encrypt, decrypt
 from core.importer import get_subclassess_by_name, function_importer
@@ -14,6 +14,9 @@ class ConfigManager(QObject):
     config_error = Signal(str)
     config_read = Signal(dict)
     config_read_error = Signal(str)
+
+    available_tasks = Signal(int, list)
+    available_infos = Signal(int, list)
 
     def __init__(self):
         super(ConfigManager, self).__init__(None)
@@ -55,6 +58,18 @@ class ConfigManager(QObject):
     @staticmethod
     def get_infos():
         return function_importer("./client/", "infos")
+
+    @Slot(int)
+    def on_gui_client_get_tasks(self, device_id):
+        tasks = []
+        for task in self.get_tasks():
+            tasks.append({"name": task.__name__, "platforms": task.platforms,
+                          "administrator": task.administrator, "kwargs": task.kwargs})
+        self.available_tasks.emit(device_id, tasks)
+
+    @Slot(int)
+    def on_gui_client_get_infos(self, device_id):
+        self.available_infos.emit(device_id, self.get_infos())
 
     def create(self, config, key: str):
         try:

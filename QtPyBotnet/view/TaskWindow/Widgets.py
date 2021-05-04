@@ -30,6 +30,9 @@ class MainTaskWidget(QWidget):
 
         self.send_button.clicked.connect(self.on_send_button_clicked)
         self.selection_widget.selection_changed.connect(self.kwargs_widget.set_kwargs)
+        
+    def set_tasks(self, tasks):
+        self.selection_widget.set_tasks(tasks)
 
     @Slot()
     def on_send_button_clicked(self):
@@ -92,27 +95,35 @@ class TaskOptionsGroupBox(QGroupBox):
 
 
 class TaskSelectionGroupBox(QGroupBox):
-    selection_changed = Signal(type)
+    selection_changed = Signal(dict)
 
     def __init__(self, parent):
         super(TaskSelectionGroupBox, self).__init__(parent)
         self.widget_layout = QVBoxLayout(self)
         self.setLayout(self.widget_layout)
         self.setTitle("Tasks")
+        self.tasks = []
 
         self.combo = QComboBox(self)
-        self.combo.currentTextChanged.connect(lambda text: self.selection_changed.emit(self.get_task_by_name(text)))
+        self.combo.currentTextChanged.connect(self.on_combo_currentTextChanged)
         self.widget_layout.addWidget(self.combo)
 
-        self.tasks = ConfigManager().get_tasks()
+    @Slot(str)
+    def on_combo_currentTextChanged(self, text):
+        task = self.get_task_by_name(text)
+        if task:
+            self.selection_changed.emit(task)
+                
+    def set_tasks(self, tasks):
+        self.combo.clear()
+        self.tasks = tasks
         for index, task in enumerate(self.tasks):
-            if not task.experimental:
-                self.combo.addItem(task.__name__)
-                self.combo.setItemData(index, task.description, Qt.ToolTipRole)
+            self.combo.addItem(task.get("name"))
+            self.combo.setItemData(index, task.get("description"), Qt.ToolTipRole)
 
     def get_task_by_name(self, name):
         for task in self.tasks:
-            if task.__name__ == name:
+            if task.get("name") == name:
                 return task
 
     def get_task(self):
@@ -131,7 +142,7 @@ class TaskKwargsGroupBox(QGroupBox):
 
         self.setTitle("Options")
 
-    @Slot(type)
+    @Slot(dict)
     def set_kwargs(self, task):
         """Creates widgets for each task keyword argument."""
         if not task or task is self.current_task:
@@ -150,7 +161,7 @@ class TaskKwargsGroupBox(QGroupBox):
             self.widgets.clear()
             self.current_task = task
 
-        kwargs_dict = task.kwargs
+        kwargs_dict = task.get("kwargs")
         for key, value in kwargs_dict.items():
             key_label = QLabel(str(key).replace("_", " ").capitalize(), self)
             val_type = value.get("type")
