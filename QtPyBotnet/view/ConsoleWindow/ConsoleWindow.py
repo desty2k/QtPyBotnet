@@ -10,28 +10,28 @@ from qrainbowstyle.windows import FramelessWindow, FramelessCriticalMessageBox
 class Highlighter(QSyntaxHighlighter):
     def __init__(self, parent):
         super(Highlighter, self).__init__(parent)
-        self.messageFormat = QTextCharFormat()
-        self.messageFormat.setForeground(Qt.yellow)
+        self.taskFormat = QTextCharFormat()
+        self.taskFormat.setForeground(Qt.yellow)
 
-        self.clientFormat = QTextCharFormat()
-        self.clientFormat.setForeground(Qt.magenta)
+        self.infoFormat = QTextCharFormat()
+        self.infoFormat.setForeground(Qt.gray)
+
+        self.buildFormat = QTextCharFormat()
+        self.buildFormat.setForeground(Qt.magenta)
 
         self.connectedFormat = QTextCharFormat()
         self.connectedFormat.setForeground(Qt.cyan)
-
-        self.disconnectedFormat = QTextCharFormat()
-        self.disconnectedFormat.setForeground(Qt.gray)
 
         self.errorFormat = QTextCharFormat()
         self.errorFormat.setForeground(Qt.red)
 
     def highlightBlock(self, text):
         if text.startswith('[TASK]'):
-            self.setFormat(0, len(text), self.messageFormat)
-        elif text.startswith('[MODULE]'):
-            self.setFormat(0, len(text), self.clientFormat)
+            self.setFormat(0, len(text), self.taskFormat)
         elif text.startswith('[INFO]'):
-            self.setFormat(0, len(text), self.disconnectedFormat)
+            self.setFormat(0, len(text), self.infoFormat)
+        elif text.startswith('[BUILD]'):
+            self.setFormat(0, len(text), self.buildFormat)
         elif text.startswith('[CONNECTED]'):
             self.setFormat(0, len(text), self.connectedFormat)
         elif text.startswith('[ERROR]'):
