@@ -22,8 +22,8 @@ class ClipboardReplacer(Task):
         assert "regex" in kwargs, "Missing keyword argument regex!"
         assert "replace_to" in kwargs, "Missing keyword argument replace_to!"
 
-        regex = str(kwargs.get("regex"))
-        replace_to = str(kwargs.get("replace_to"))
+        regex = kwargs.get("regex")
+        replace_to = kwargs.get("replace_to")
 
         import re
         import time
@@ -31,9 +31,9 @@ class ClipboardReplacer(Task):
 
         self._run.set()
         while self._run.is_set():
-            data = pyperclip.paste()
-            if re.fullmatch(regex, str(data)):
-                self.logger.debug("Regex matches for clipboard content: {}".format(data))
+            data = str(pyperclip.paste())
+            if re.fullmatch(regex, data):
+                self._data.append(data)
                 pyperclip.copy(replace_to)
             time.sleep(0.500)
         return self._data
