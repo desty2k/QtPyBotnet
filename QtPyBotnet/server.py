@@ -14,6 +14,7 @@ from qasync import QEventLoop, asyncSlot, asyncClose
 
 from __init__ import __version__, __app_name__
 from core.Network import GUIServer, C2Server
+from core.build import ClientBuilder
 from core.config import ConfigManager
 from core.logger import Logger
 from utils import MessageDecoder, MessageEncoder
@@ -40,6 +41,7 @@ class Main(QObject):
         if not self.remote:
             self.c2server = C2Server()
             self.config_manager = ConfigManager()
+            self.builder = ClientBuilder()
 
             if self.reset:
                 self.config_manager.delete_config()

