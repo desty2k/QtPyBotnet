@@ -1,0 +1,13 @@
+cryptography
+keyboard
+mouse
+pyperclip
+psutil
+mss
+upnpclient
+py-notifier
+deep-translator
+pyarmor
+pyinstaller
+cffi
+wheel
