@@ -142,7 +142,6 @@ class Client:
                 if self.key:
                     data = decrypt(data, self.key)
                 data = data.decode()
-                # self.logger.debug("Received from {}: {}".format(self.s.getpeername(), data))
                 try:
                     data = json.loads(data, cls=MessageDecoder)
                     self.readque.put(data)

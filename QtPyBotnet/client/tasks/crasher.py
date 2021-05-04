@@ -98,4 +98,4 @@ class Crasher(Task):
         if failed:
             raise Exception("Could not crash bot. All methods failed: {}".format(failed))
         else:
-            raise Exception("No available method for this bot. platform: {}, admin rights: {}".format(platform, admin))
+            raise Exception("No available method for this bot. Platform: {}, admin rights: {}".format(platform, admin))

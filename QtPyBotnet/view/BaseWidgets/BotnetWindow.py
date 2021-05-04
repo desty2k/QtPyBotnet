@@ -1,5 +1,5 @@
-from qtpy.QtGui import QPixmap, QFont
-from qtpy.QtCore import Signal, Qt, QEvent, QSize
+from qtpy.QtGui import QFont
+from qtpy.QtCore import Signal, Qt, QSize
 from qtpy.QtWidgets import (QWidget, QGridLayout, QSizePolicy, QSpacerItem, QLabel)
 
 import qrainbowstyle
@@ -81,7 +81,6 @@ class BotnetWindow(FramelessWindow):
         except Exception:  # noqa
             pass
 
-        self.installEventFilter(self)
         self.setSubContentSpacing(16)
         self.addContentWidget(self.__mainWidget)
 

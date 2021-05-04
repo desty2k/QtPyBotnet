@@ -28,8 +28,8 @@ class LoginDialog(BotnetWindow):
         self.addSubContentWidget(self._mode_frame)
         self.addSubContentWidget(self._login_frame)
 
-        self._connect_frame.setVisible(False)
         self._mode_frame.setVisible(True)
+        self._connect_frame.setVisible(False)
         self._login_frame.setVisible(False)
 
         self._connect_frame.connect_clicked.connect(self.setup_remote.emit)
@@ -58,18 +58,9 @@ class LoginDialog(BotnetWindow):
         self.close()
 
     @Slot(str)
-    def on_failed_connection(self, message):
-        self._connect_frame.on_failed_connection(message)
+    def on_failed_login(self, text):
+        self._connect_frame.on_failed_connection(text)
 
     @Slot()
     def on_successfull_login(self):
         self.close()
-
-    @Slot(str)
-    def on_failed_login(self, text: str):
-        self._error = FramelessCriticalMessageBox(self)
-        self._error.setWindowModality(Qt.WindowModal)
-        self._error.setText(text)
-        self._error.setStandardButtons(QDialogButtonBox.Ok)
-        self._error.button(QDialogButtonBox.Ok).clicked.connect(self._error.close)
-        self._error.show()

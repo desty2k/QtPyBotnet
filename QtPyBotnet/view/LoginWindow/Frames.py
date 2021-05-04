@@ -35,12 +35,13 @@ class ModeFrame(BaseFrame):
 
         self.mode_combo = QComboBox(self.mode_widget)
         self.mode_combo.setObjectName("mode_combo")
-        self.mode_combo.addItems(["Server+GUI", "Remote", "Server", "Relay"])
+        self.mode_combo.addItems(["Server + GUI", "Remote GUI", "Server only", "Cluster"])
         self.mode_widget_layout.setWidget(0, QFormLayout.FieldRole, self.mode_combo)
 
         self.start_button = QPushButton(self)
         self.start_button.setMinimumSize(QSize(0, 35))
         self.start_button.setObjectName("start_button")
+        self.start_button.setFocus()
         self.start_button.setText("START")
         self.mode_layout.addWidget(self.start_button)
 

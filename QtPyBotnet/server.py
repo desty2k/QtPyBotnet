@@ -195,16 +195,12 @@ def main():
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     QApplication.setQuitOnLastWindowClosed(False)
 
-    # qrainbowstyle.setAppIcon(os.path.join(sys.path[0], "resources/icons/biohazard.svg"))
-    # qrainbowstyle.alignButtonsLeft()
-    # qrainbowstyle.useDarwinButtons()
-
     app = QApplication(sys.argv)
     app.setApplicationName(__app_name__)
     app.setApplicationVersion(__version__)
     app.setApplicationDisplayName(__app_name__)
 
-    app.setStyleSheet(qrainbowstyle.load_stylesheet("qdarkstyle3"))
+    app.setStyleSheet(qrainbowstyle.load_stylesheet("darkorange"))
     font = QApplication.font()
     font.setPointSize(9)
     app.setFont(font)
