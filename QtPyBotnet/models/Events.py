@@ -62,13 +62,16 @@ class Task(Event):
         self.exit_code = exit_code
         self.user_activity = 0
 
-        self.time_created = None
+        self.time_queued = None
         self.time_started = None
         self.time_finished = None
-        self.state = None
+        self.state = "Created"
 
     def get_id(self):
         return self.id
+
+    def is_queued(self):
+        return self.time_queued is not None
 
     def is_running(self):
         return self.time_started is not None
@@ -77,16 +80,20 @@ class Task(Event):
         return self.time_finished is not None
 
     def update(self, task):
+        if task.is_queued():
+            self.set_queued(task.time_queued)
         if task.is_running():
             self.set_running(task.time_started)
         if task.is_finished():
             self.set_finished(task.time_finished, task.result, task.exit_code)
 
-    def set_created(self, time_started):
-        self.time_created = time_started
+    def set_queued(self, time_queued):
+        self.time_queued = time_queued
         self.state = "Queued"
 
     def set_running(self, time_started):
+        if not self.time_queued:
+            self.time_created = time_started
         self.time_started = time_started
         self.state = "Running"
 
