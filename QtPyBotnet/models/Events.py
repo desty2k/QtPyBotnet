@@ -29,7 +29,6 @@ class Info(Event):
 
     def create(self):
         return {"event_type": "info",
-                "bot_id": self.bot_id,
                 "info": self.info}
 
     def serialize(self):
@@ -101,7 +100,6 @@ class Task(Event):
         return {"event_type": "task",
                 "task": self.task,
                 "kwargs": self.kwargs,
-                "bot_id": self.bot_id,
                 "task_id": self.id,
                 "user_activity": self.user_activity}
 
