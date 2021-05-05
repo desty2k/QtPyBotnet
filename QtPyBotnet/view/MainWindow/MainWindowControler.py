@@ -87,6 +87,7 @@ class MainWindow(FramelessWindow):
     async def on_bot_double_clicked(self, bot: Bot):
         self.device_window = DeviceWindow(bot, self)
         self.device_window.stop_task.connect(self.client.stop_task)
+        self.device_window.force_start_task.connect(self.client.force_start_task)
         self.device_window.show()
 
     @asyncSlot()

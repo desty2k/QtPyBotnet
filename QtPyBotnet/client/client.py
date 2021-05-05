@@ -302,6 +302,8 @@ class Main:
 
                             elif event == "stop":
                                 self.stop_task(task_id)
+                            elif event == "force_start":
+                                self.force_start_task(task_id)
 
                         else:
                             self.logger.error("Failed to find matching event type for message: {}".format(data))
@@ -331,6 +333,16 @@ class Main:
                 self.logger.debug("Trying to stop task {}".format(task.id))
                 task.stop()
                 self.logger.info("Stopping task {}...".format(task.id))
+                return
+
+    def force_start_task(self, task_id):
+        for task in self.tasks_que:
+            if task.id == task_id:
+                self.tasks_que.remove(task)
+                thr = task.start(task.run_kwargs)
+                task.set_thread(thr)
+                self.tasks.append(task)
+                self.logger.info("Task {} force started".format(task.id))
                 return
 
     def running_task_names(self):

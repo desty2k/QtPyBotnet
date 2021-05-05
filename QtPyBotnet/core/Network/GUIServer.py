@@ -10,6 +10,7 @@ from models import Task, Info
 class GUIServer(QThreadedServer):
     """GUI server."""
     stop_task = Signal(int, int)
+    force_start_task = Signal(int, int)
     start_task = Signal(int, str, dict, int)
     get_tasks = Signal(int)
 
@@ -34,6 +35,9 @@ class GUIServer(QThreadedServer):
             elif event == "start":
                 self.start_task.emit(message.get("bot_id"), message.get("task"),
                                      message.get("kwargs"), message.get("user_activity"))
+            elif event == "force_start":
+                self.force_start_task.emit(message.get("bot_id"), message.get("task_id"))
+
         elif event_type == "build":
             event = message.get("event")
             if event == "start":

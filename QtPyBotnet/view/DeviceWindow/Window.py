@@ -9,6 +9,7 @@ from .Widgets import DeviceInfoWidget, DeviceTasksWidget
 
 class DeviceWindow(FramelessWindow):
     stop_task = Signal(int, int)
+    force_start_task = Signal(int, int)
 
     def __init__(self, bot, parent):
         super(DeviceWindow, self).__init__(parent)
@@ -24,6 +25,7 @@ class DeviceWindow(FramelessWindow):
         self.tab_widget.addTab(self.info_tab, self.info_tab.tab_name)
         self.tab_widget.addTab(self.tasks_tab, self.tasks_tab.tab_name)
         self.tasks_tab.stop_task.connect(self.stop_task.emit)
+        self.tasks_tab.force_start_task.connect(self.force_start_task.emit)
 
     @asyncSlot(list)
     async def updateProperties(self, info):

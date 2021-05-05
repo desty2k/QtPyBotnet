@@ -117,6 +117,7 @@ class Main(QObject):
         self.gui_server.stop_task.connect(self.c2server.stop_task)
         self.gui_server.start_task.connect(self.c2server.send_task)
         self.gui_server.get_tasks.connect(self.config_manager.on_gui_client_get_tasks)
+        self.gui_server.force_start_task.connect(self.c2server.force_start_task)
 
         self.builder.build_error.connect(self.gui_server.on_build_error)
         self.builder.build_stopped.connect(self.gui_server.on_build_stopped)

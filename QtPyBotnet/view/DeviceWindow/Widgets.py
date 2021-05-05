@@ -68,6 +68,7 @@ class DeviceInfoWidget(WidgetWithCloseSignal):
 class DeviceTasksWidget(WidgetWithCloseSignal):
     """Shows tasks table."""
     stop_task = Signal(int, int)
+    force_start_task = Signal(int, int)
 
     def __init__(self, bot, parent):
         super(DeviceTasksWidget, self).__init__(parent)
@@ -97,7 +98,10 @@ class DeviceTasksWidget(WidgetWithCloseSignal):
     @Slot(int)
     def showContextMenu(self, task_id) -> None:
         self.menu = QMenu(self)
+        force_start_action = QAction('Force start', self)
+        force_start_action.triggered.connect(lambda: self.force_start_task.emit(self.bot_id, task_id))
         stop_action = QAction('Stop', self)
         stop_action.triggered.connect(lambda: self.stop_task.emit(self.bot_id, task_id))
+        self.menu.addAction(force_start_action)
         self.menu.addAction(stop_action)
         self.menu.popup(QCursor.pos())

