@@ -13,6 +13,7 @@ class StringDictWidget(QWidget):
 
     def __init__(self, parent):
         super(StringDictWidget, self).__init__(parent)
+        self.setContentsMargins(11, 11, 11, 11)
         self.widget_layout = QFormLayout(self)
         self.widget_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.widget_layout)

@@ -21,6 +21,7 @@ class PayloadWindow(FramelessWindow):
     def __init__(self, parent):
         super(PayloadWindow, self).__init__(parent)
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.setContentsMargins(11, 11, 11, 11)
         self.progress_windows = []
 
         self.content_widget = QWidget(self)

@@ -13,12 +13,13 @@ class TaskWindow(FramelessWindow):
 
     def __init__(self, parent):
         super(TaskWindow, self).__init__(parent)
+        self.setContentsMargins(11, 11, 11, 11)
 
         self.content_widget = MainTaskWidget(self)
         self.content_widget.send_task.connect(self.send_task.emit)
         self.addContentWidget(self.content_widget)
 
-        self.spinner = WaitingSpinner(self, parent, modality=Qt.WindowModal,
+        self.spinner = WaitingSpinner(self, modality=Qt.WindowModal,
                                       roundness=70.0, fade=70.0, radius=15.0, lines=6,
                                       line_length=25.0, line_width=4.0, speed=1.0)
 

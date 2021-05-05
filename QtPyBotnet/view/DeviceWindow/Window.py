@@ -12,6 +12,7 @@ class DeviceWindow(FramelessWindow):
 
     def __init__(self, bot, parent):
         super(DeviceWindow, self).__init__(parent)
+        self.setContentsMargins(11, 11, 11, 11)
 
         self.tab_widget = QTabWidget(self)
         self.addContentWidget(self.tab_widget)

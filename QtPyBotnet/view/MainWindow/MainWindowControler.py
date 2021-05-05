@@ -63,9 +63,9 @@ class MainWindow(FramelessWindow):
         self.console_window.message.connect(self.client.write)
         self.console_window.setVisible(False)
 
-        self.spinner = WaitingSpinner(self, disableParentWhenSpinning=True,
-                                      modality=Qt.WindowModal,
-                                      centerOnParent=True)
+        self.spinner = WaitingSpinner(self, modality=Qt.WindowModal,
+                                      roundness=70.0, fade=70.0, radius=15.0, lines=6,
+                                      line_length=25.0, line_width=4.0, speed=1.0)
         self.spinner.start()
 
         self.menu = TitlebarMenu(self)
