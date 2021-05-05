@@ -1,6 +1,13 @@
 Changelog
 =========
 
+- 0.1.3:
+    - Add force start task action
+    - Add task created, task queued states
+    - Add early versions of cluster client and server
+    - Remove sending bot id to bots
+    - Fix frameless windows overlapping widgets in tasks and payload windows
+
 - 0.1.2:
     - Add payload window
     - Add cross platform client generator
