@@ -24,6 +24,7 @@ Client
 
 Tasks
 ~~~~~
+- [x] VM checker - terminates app if running in virtual machine or in Docker.
 - [x] Translator - translates text in notifications and emails with system language.
 - [x] User activity analyzer - calculates user activity factor from CPU / RAM load and executes tasks in right time.
 - [x] Notifier - can create custom notifications to force user to take certain actions.
