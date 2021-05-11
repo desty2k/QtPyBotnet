@@ -1,15 +1,16 @@
-from qrainbowstyle.windows import FramelessWarningMessageBox
+from qrainbowstyle.windows import FramelessWarningMessageBox, FramelessInformationMessageBox
 from qtpy.QtWidgets import QPushButton, QDialogButtonBox
 from qtpy.QtCore import Signal, QMetaObject, Slot, Qt
 
 import logging
 
 from view.BaseWidgets import BotnetWindow, FramesWidget
-from view.SetupWindow.ConfigFrames import TermsFrame, KeyFrame, ServerFrame, InfoFrame, FinishFrame, GUIFrame
+from view.SetupWindow.ConfigFrames import TermsFrame, ServerFrame, InfoFrame, FinishFrame, GUIFrame
 
 
 class SetupDialog(BotnetWindow):
     accepted = Signal(dict)
+    restart_accepted = Signal()
     cancelled = Signal()
 
     def __init__(self, parent=None):
@@ -26,7 +27,7 @@ class SetupDialog(BotnetWindow):
         self.addSubContentWidget(self.start_button)
 
         self.config_frame = FramesWidget(self)
-        self.config_frame.add_frames([TermsFrame, KeyFrame, GUIFrame, ServerFrame, InfoFrame, FinishFrame])
+        self.config_frame.add_frames([TermsFrame, GUIFrame, ServerFrame, InfoFrame, FinishFrame])
 
         self.config_frame.setObjectName("config_frame")
         self.config_frame.setVisible(False)
@@ -38,6 +39,10 @@ class SetupDialog(BotnetWindow):
         except Exception:
             pass
         self.closeClicked.connect(self.on_config_frame_rejected)
+
+    @Slot(dict)
+    def set_options(self, options):
+        self.config_frame.set_options(options)
 
     @Slot()
     def on_config_frame_accepted(self):
@@ -68,6 +73,26 @@ class SetupDialog(BotnetWindow):
         self.error_messagebox.show()
 
     @Slot()
+    def on_first_setup_finished(self):
+        self.success_messagebox = FramelessInformationMessageBox()
+        self.success_messagebox.setWindowModality(Qt.WindowModal)
+        self.success_messagebox.setStandardButtons(QDialogButtonBox.Ok)
+        self.success_messagebox.button(QDialogButtonBox.Ok).clicked.connect(self.success_messagebox.close)
+        self.success_messagebox.button(QDialogButtonBox.Ok).clicked.connect(self.restart_accepted.emit)
+        self.success_messagebox.closeClicked.connect(self.restart_accepted.emit)
+        self.success_messagebox.setText("Configration files has been successfully written to disk. "
+                                        "Restart server app to continue.")
+        self.success_messagebox.show()
+
+    @Slot()
     def on_start_button_clicked(self):
         self.start_button.setVisible(False)
         self.config_frame.setVisible(True)
+
+    @Slot()
+    def close(self):
+        if self.warning_messagebox:
+            self.warning_messagebox.close()
+        if self.error_messagebox:
+            self.error_messagebox.close()
+        super().close()
