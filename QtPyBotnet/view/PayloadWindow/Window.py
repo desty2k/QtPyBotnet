@@ -1,14 +1,14 @@
-import base64
-import logging
-
 from qtpy.QtCore import Signal, Slot, Qt
 from qtpy.QtGui import QIcon, QPixmap
-from qtpy.QtWidgets import QVBoxLayout, QPushButton, QWidget, QDialogButtonBox, QListWidget, QComboBox, \
-    QLineEdit, QListWidgetItem, QMenu, QAction
+from qtpy.QtWidgets import (QPushButton, QWidget, QDialogButtonBox, QListWidget, QComboBox, QLineEdit, QListWidgetItem,
+                            QMenu, QAction, QFormLayout, QLabel)
 
 from qrainbowstyle.widgets import WaitingSpinner
-from qrainbowstyle.windows import FramelessWindow, FramelessCriticalMessageBox, FramelessInformationMessageBox, \
-    FramelessQuestionMessageBox
+from qrainbowstyle.windows import (FramelessWindow, FramelessCriticalMessageBox, FramelessInformationMessageBox,
+                                   FramelessQuestionMessageBox)
+
+import base64
+import logging
 
 from view.PayloadWindow.ProgressWindow import ProgressWindow
 
@@ -27,22 +27,27 @@ class PayloadWindow(FramelessWindow):
         self.content_widget = QWidget(self)
         self.addContentWidget(self.content_widget)
 
-        self.widget_layout = QVBoxLayout(self.content_widget)
+        self.widget_layout = QFormLayout(self.content_widget)
         self.content_widget.setLayout(self.widget_layout)
 
         self.spinner = WaitingSpinner(self, parent, modality=Qt.WindowModal,
                                       roundness=70.0, fade=70.0, radius=15.0, lines=6,
                                       line_length=25.0, line_width=4.0, speed=1.0)
 
-        self.build_name_edit = QLineEdit(self)
-        self.icon_combobox = QComboBox(self)
-        self.generators_list = QListWidget(self)
-        self.build_button = QPushButton("Build", self)
-        self.build_button.clicked.connect(self.on_build_button_clicked)
+        self.build_name_label = QLabel("Name", self.content_widget)
+        self.build_name_edit = QLineEdit(self.content_widget)
+        self.widget_layout.addRow(self.build_name_label, self.build_name_edit)
 
-        self.widget_layout.addWidget(self.build_name_edit)
-        self.widget_layout.addWidget(self.icon_combobox)
-        self.widget_layout.addWidget(self.generators_list)
+        self.icon_label = QLabel("Icon", self.content_widget)
+        self.icon_combobox = QComboBox(self.content_widget)
+        self.widget_layout.addRow(self.icon_label, self.icon_combobox)
+
+        self.generators_label = QLabel("Generators", self.content_widget)
+        self.generators_list = QListWidget(self.content_widget)
+        self.widget_layout.addRow(self.generators_label, self.generators_list)
+
+        self.build_button = QPushButton("Build", self.content_widget)
+        self.build_button.clicked.connect(self.on_build_button_clicked)
         self.widget_layout.addWidget(self.build_button)
 
         self.menu = QMenu(self)
