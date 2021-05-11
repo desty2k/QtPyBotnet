@@ -342,6 +342,9 @@ class Main:
                 thr = task.start(task.run_kwargs)
                 task.set_thread(thr)
                 self.tasks.append(task)
+                self.writeque.put(
+                    {"event_type": "task", "task": task.__class__.__name__,
+                     "task_id": task_id, "state": "started"})
                 self.logger.info("Task {} force started".format(task.id))
                 return
 
