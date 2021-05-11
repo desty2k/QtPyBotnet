@@ -2,7 +2,7 @@ def geolocation():
     """Get device location"""
     import json
     from urllib.request import urlopen
-    response = urlopen('http://ipinfo.io').read()
+    response = urlopen('http://ipinfo.io', timeout=10).read()
     json_data = json.loads(response)
     latitude, longitude = json_data.get('loc').split(',')
     return latitude, longitude
@@ -28,7 +28,7 @@ def platform():
 def public_ip():
     """Return public IP address of host machine"""
     from urllib.request import urlopen
-    return urlopen('http://api.ipify.org').read().decode()
+    return urlopen('http://api.ipify.org', timeout=10).read().decode()
 
 
 def architecture():
