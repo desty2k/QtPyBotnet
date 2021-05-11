@@ -1,13 +1,13 @@
 import logging
 
 from qtpy.QtCore import QMetaObject, Signal, Qt, QSize
-from qtpy.QtWidgets import QDialogButtonBox
+from qtpy.QtWidgets import QDialogButtonBox, QApplication
 
 from qrainbowstyle.windows import FramelessWindow, FramelessQuestionMessageBox, FramelessCriticalMessageBox, FramelessWarningMessageBox
 from qrainbowstyle.widgets import WaitingSpinner
 from qrainbowstyle.utils import StyleLooper
 
-from qasync import asyncSlot
+from qasync import asyncSlot, asyncClose
 
 from models import Bot
 from core.Network import GUIClient
@@ -17,60 +17,120 @@ from view.ConsoleWindow import Console
 from view.DeviceWindow import DeviceWindow
 from view.PayloadWindow import PayloadWindow
 from view.MainWindow import TitlebarMenu, MainWidget
+from view.RemoteConnectWindow import RemoteConnectWindow
+from view.SetupWindow import SetupDialog
 
 
 class MainWindow(FramelessWindow):
     """Main window controler manages signals and GUI IO."""
-    gui_connected = Signal()
-    gui_connect_fail = Signal(str)
-    gui_disconnected = Signal()
-    gui_retry_connect = Signal()
-    closeAccepted = Signal()
+    setup_cancelled = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, local=False):
         super(MainWindow, self).__init__(parent)
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.local = local
 
-        self.client = GUIClient()
-        self.content_widget = None
+        self.content_widget = MainWidget(self)
 
         # windows and widgets
-        self.task_window = None
+        self.connect_dialog = None
+        self.setup_dialog = None
+
         self.device_window = None
+        self.task_window = None
         self.payload_window = None
         self.console_window = None
         self.spinner = None
         self.menu = None
         self.styler = StyleLooper()
 
+        self.client = GUIClient()
+        self.client.connected.connect(self.on_gui_client_connected)
+
+        self.client.bot_connected.connect(self.content_widget.add_bot)
+        self.client.bot_disconnected.connect(self.content_widget.remove_bot)
+        self.client.bot_updated.connect(self.content_widget.update_bot)
+
+        self.client.get_config.connect(self.on_gui_client_config)
+        self.client.start_first_setup.connect(self.on_start_first_setup)
+        self.client.error.connect(self.on_gui_client_error)
+
         try:
             self.closeClicked.disconnect()
         except Exception:  # noqa
             pass
-        self.closeClicked.connect(self.on_closeClicked)
+        self.closeClicked.connect(self.on_close_requested)
         self.resize(QSize(1500, 900))
 
     @asyncSlot()
-    async def setup_gui(self, config):
-        self.content_widget = MainWidget(self)
-        self.content_widget.bot_double_clicked.connect(self.on_bot_double_clicked)
-        self.content_widget.task_button_clicked.connect(self.on_task_button_clicked)
-        self.content_widget.payload_button_clicked.connect(self.on_payload_button_clicked)
-        self.content_widget.setupUi(config)
-        self.addContentWidget(self.content_widget)
+    async def setup_connect_dialog(self):
+        """Show connect dialog."""
+        self.connect_dialog = RemoteConnectWindow()
+        self.client.connected.connect(self.connect_dialog.on_gui_client_connected)
+        self.client.connected.connect(self.show)
+        self.connect_dialog.connect_clicked.connect(self.connect_to_gui_server)
+        self.connect_dialog.closeClicked.connect(self.close_connect_dialog)
+        self.connect_dialog.show()
 
-        self.console_window = Console(self)
-        self.console_window.message.connect(self.client.write)
-        self.console_window.setVisible(False)
+    @asyncSlot(str, int, str)
+    async def connect_to_gui_server(self, ip, port, key):
+        """Try to connect to GUI server."""
+        self.client.start(ip, port, key.encode())
+        self.client.setJSONEncoder(MessageEncoder)
+        self.client.setJSONDecoder(MessageDecoder)
 
-        self.spinner = WaitingSpinner(self, modality=Qt.WindowModal,
-                                      roundness=70.0, fade=70.0, radius=15.0, lines=6,
-                                      line_length=25.0, line_width=4.0, speed=1.0)
-        self.spinner.start()
+    @asyncSlot(str, int)
+    async def on_gui_client_connected(self, server_ip, server_port):
+        """Client connected to GUI server successfully."""
+        self.client.on_get_config()
 
-        self.menu = TitlebarMenu(self)
-        self.addMenu(self.menu)
-        QMetaObject.connectSlotsByName(self)
+    @asyncSlot(str)
+    async def on_gui_client_error(self, error):
+        pass
+
+    @asyncSlot()
+    async def on_gui_client_failed_to_connect(self):
+        pass
+
+    @asyncSlot()
+    async def on_start_first_setup(self):
+        """When there is no config on server."""
+        self.setup_dialog = SetupDialog()
+        self.client.setup_options.connect(self.setup_dialog.set_options)
+        self.client.config_validate_error.connect(self.setup_dialog.on_config_error)
+        self.client.config_saved.connect(self.on_first_setup_finished)
+        self.setup_dialog.accepted.connect(self.client.on_save_config)
+        self.setup_dialog.cancelled.connect(self.setup_cancelled.emit)
+        self.setup_dialog.restart_accepted.connect(self.close_with_server)
+        self.client.on_get_setup_options()
+        self.setup_dialog.show()
+
+    @asyncSlot()
+    async def on_first_setup_finished(self):
+        self.setup_dialog.on_first_setup_finished()
+
+    @asyncSlot(dict)
+    async def on_gui_client_config(self, config: dict):
+        if config:
+            self.content_widget.bot_double_clicked.connect(self.on_bot_double_clicked)
+            self.content_widget.task_button_clicked.connect(self.on_task_button_clicked)
+            self.content_widget.payload_button_clicked.connect(self.on_payload_button_clicked)
+            self.content_widget.setupUi(config)
+            self.addContentWidget(self.content_widget)
+
+            self.console_window = Console(self)
+            self.console_window.message.connect(self.client.write)
+            self.console_window.setVisible(False)
+
+            self.spinner = WaitingSpinner(self, modality=Qt.WindowModal, disableParentWhenSpinning=True,
+                                          roundness=70.0, fade=70.0, radius=15.0, lines=6,
+                                          line_length=25.0, line_width=4.0, speed=1.0)
+            self.content_widget.load_finished.connect(self.spinner.stop)
+            self.spinner.start()
+
+            self.menu = TitlebarMenu(self)
+            self.addMenu(self.menu)
+            QMetaObject.connectSlotsByName(self)
 
     @asyncSlot()
     async def on_task_button_clicked(self):
@@ -78,16 +138,17 @@ class MainWindow(FramelessWindow):
             self.task_window.show()
         else:
             self.task_window = TaskWindow(self)
-            self.task_window.send_task.connect(self.client.send_task)
-            self.task_window.get_tasks.connect(self.client.get_tasks)
+            self.client.task_message.connect(self.task_window.process_task_message)
+            self.task_window.send_task.connect(self.client.on_send_task)
+            self.task_window.get_tasks.connect(self.client.on_get_tasks)
             self.task_window.setupUi()
             self.task_window.show()
 
     @asyncSlot(Bot)
     async def on_bot_double_clicked(self, bot: Bot):
         self.device_window = DeviceWindow(bot, self)
-        self.device_window.stop_task.connect(self.client.stop_task)
-        self.device_window.force_start_task.connect(self.client.force_start_task)
+        self.device_window.stop_task.connect(self.client.on_stop_task)
+        self.device_window.force_start_task.connect(self.client.on_force_start_task)
         self.device_window.show()
 
     @asyncSlot()
@@ -96,87 +157,49 @@ class MainWindow(FramelessWindow):
             self.payload_window.show()
         else:
             self.payload_window = PayloadWindow(self)
-            self.payload_window.get_build_options.connect(self.client.get_build_options)
-            self.payload_window.start_build.connect(self.client.start_build)
-            self.payload_window.stop_build.connect(self.client.stop_build)
+            self.client.build_message.connect(self.payload_window.process_build_message)
+            self.payload_window.get_build_options.connect(self.client.on_get_build_options)
+            self.payload_window.start_build.connect(self.client.on_start_build)
+            self.payload_window.stop_build.connect(self.client.on_stop_build)
             self.payload_window.setupUi()
             self.payload_window.show()
-
-    @asyncSlot(str, int, str)
-    async def connect_to_gui_server(self, ip, port, key):
-        self.client.connected.connect(self.gui_connected.emit)
-        self.client.connected.connect(self.spinner.stop)
-        self.client.failed_to_connect.connect(self.gui_connect_fail.emit)
-        self.client.message.connect(self.on_gui_message)
-        self.client.disconnected.connect(self.gui_disconnected.emit)
-        self.client.start(ip, port, key)
-        self.client.setJSONDecoder(MessageDecoder)
-        self.client.setJSONEncoder(MessageEncoder)
 
     @asyncSlot()
     async def on_show_console_triggered(self):
         self.console_window.show()
 
     @asyncSlot()
-    async def on_change_style_triggered(self):
-        self.styler.change()
-
-    @asyncSlot(bool)
-    async def on_stay_top_action_triggered(self, checked):
-        if checked:
-            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
-        else:
-            self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
-        self.show()
-
-    @asyncSlot(dict)
-    async def on_gui_message(self, message: dict):
-        """Triggered when GUI client receive message from GUI server."""
-        self.console_window.write(message)
-        bot_id = message.get("bot_id")
-        event_type = message.get("event_type")
-        if bot_id:
-            if event_type == "connection":
-                event = message.get("event")
-                if event == "connected":
-                    self.content_widget.add_bot(bot_id,
-                                                message.get("ip"),
-                                                message.get("port"))
-                elif event == "disconnected":
-                    self.content_widget.remove_bot(bot_id)
-            elif event_type in ("task", "info"):
-                self.content_widget.update_bot(bot_id, message)
-        else:
-            if event_type == "build" and self.payload_window:
-                self.payload_window.process_build_message(message)
-            elif event_type == "task" and self.task_window:
-                self.task_window.process_task_message(message)
-
-    @asyncSlot(str)
-    async def on_gui_connect_fail(self, message):
-        self.spinner.stop()
-        self.warning_dialog = FramelessCriticalMessageBox(self)
-        self.warning_dialog.setWindowModality(Qt.WindowModal)
-        self.warning_dialog.setStandardButtons(QDialogButtonBox.Yes | QDialogButtonBox.No)
-        self.warning_dialog.button(QDialogButtonBox.No).clicked.connect(self.closeAccepted.emit)
-        self.warning_dialog.button(QDialogButtonBox.Yes).clicked.connect(self.gui_retry_connect.emit)
-        self.warning_dialog.button(QDialogButtonBox.Yes).clicked.connect(self.warning_dialog.close)
-        self.warning_dialog.setText("Failed to connect to GUI server. Do you want to retry?")
-        self.warning_dialog.show()
-
-    @asyncSlot()
-    async def on_closeClicked(self):
+    async def on_close_requested(self):
         self.close_dialog = FramelessQuestionMessageBox(self)
         self.close_dialog.setWindowModality(Qt.WindowModal)
         self.close_dialog.setStandardButtons(QDialogButtonBox.Yes | QDialogButtonBox.No)
-        self.close_dialog.button(QDialogButtonBox.No).clicked.connect(self.close_dialog.close)
-        self.close_dialog.button(QDialogButtonBox.Yes).clicked.connect(self.closeAccepted.emit)
+        self.close_dialog.button(QDialogButtonBox.No).clicked.connect(self.close_with_server)
         self.close_dialog.button(QDialogButtonBox.Yes).clicked.connect(self.close_dialog.close)
-        self.close_dialog.setText("Do you want to close app?")
+        self.close_dialog.button(QDialogButtonBox.Yes).clicked.connect(self.close)
+        self.close_dialog.setText("Do you want to keep server running?")
         self.close_dialog.show()
 
     @asyncSlot()
+    async def close_with_server(self):
+        self.client.disconnected.connect(self.close)
+        self.client.on_app_close()
+        if self.spinner:
+            self.spinner.start()
+
+        if not self.local:
+            QApplication.instance().exit()
+
+    @asyncSlot()
+    async def close_connect_dialog(self):
+        self.connect_dialog.close()
+        QApplication.instance().exit()
+
+    @asyncSlot()
     async def close(self):
+        if self.setup_dialog:
+            self.setup_dialog.close()
+        if self.connect_dialog:
+            self.connect_dialog.close()
         if self.client:
             self.client.close()
             self.client.wait()

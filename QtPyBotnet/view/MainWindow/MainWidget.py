@@ -17,6 +17,7 @@ class MainWidget(QWidget):
     task_button_clicked = Signal()
     payload_button_clicked = Signal()
     bot_clicked = Signal(int)
+    load_finished = Signal()
 
     def __init__(self, parent):
         super(MainWidget, self).__init__(parent)
@@ -31,6 +32,7 @@ class MainWidget(QWidget):
 
         self.map.setObjectName("mapWidget")
         self.map.enableMarkersDragging(False)
+        self.map.loadFinished.connect(self.load_finished.emit)
 
         self.botsTable = QTableView(self)
         self.botsTable.doubleClicked.connect(self.on_botTable_doubleClicked)
