@@ -1,6 +1,18 @@
 Changelog
 =========
 
+- 0.2:
+    - Add new client icons
+    - Add suffixes for client builds
+    - Add few new GUI API calls
+    - Refactor server script
+    - Separate backend from frontend
+    - Make first setup remote
+    - Remove login dialog
+    - Remove config encryption
+    - Remove config frame from setup dialog
+    - Store app config in QtPyBotnet directory, not in Documents
+
 - 0.1.3:
     - Add force start task action
     - Add task created, task queued states
