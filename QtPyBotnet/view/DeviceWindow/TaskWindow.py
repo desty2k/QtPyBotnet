@@ -1,5 +1,5 @@
 from qtpy.QtWidgets import QWidget, QFormLayout, QLabel, QScrollArea, QHBoxLayout, QListView, QLineEdit, QTextEdit
-from qtpy.QtGui import QPixmap, QImage, QStandardItem, QStandardItemModel
+from qtpy.QtGui import QPixmap, QStandardItem, QStandardItemModel
 from qtpy.QtCore import Qt
 
 from base64 import b64decode

@@ -40,9 +40,5 @@ class TaskWindow(FramelessWindow):
         if self.isVisible():
             event = message.get("event")
             if event == "options":
-                options = message.get("options")
-                self.set_tasks(options.get("tasks"))
-
-    def set_tasks(self, tasks):
-        self.content_widget.set_tasks(tasks)
-        self.spinner.stop()
+                self.content_widget.set_tasks(message.get("options").get("tasks"))
+                self.spinner.stop()
