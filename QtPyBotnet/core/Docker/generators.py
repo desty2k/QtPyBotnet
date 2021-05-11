@@ -23,7 +23,7 @@ class BaseGenerator(QObject):
 
     tag = ""
     dockerfile = ""
-    name = ""
+    build_suffix = ""
 
     def __init__(self, parent=None):
         super(BaseGenerator, self).__init__(parent)
@@ -127,22 +127,22 @@ class BaseGenerator(QObject):
 class Win32Generator(BaseGenerator):
     tag = "qtpybotnet-win32"
     dockerfile = "Dockerfile-py3-win32"
-    name = "Windows x86"
+    build_suffix = "-win32"
 
 
 class Win64Generator(BaseGenerator):
     tag = "qtpybotnet-win64"
     dockerfile = "Dockerfile-py3-win64"
-    name = "Windows x64"
+    build_suffix = "-win64"
 
 
 class Amd64Generator(BaseGenerator):
     tag = "qtpybotnet-amd64"
     dockerfile = "Dockerfile-py3-amd64"
-    name = "Linux AMD64"
+    build_suffix = "-amd64"
 
 
 class i386Generator(BaseGenerator):
     tag = "qtpybotnet-i386"
     dockerfile = "Dockerfile-py3-i386"
-    name = "Linux i386"
+    build_suffix = "-i386"

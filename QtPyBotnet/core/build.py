@@ -61,7 +61,7 @@ class ClientBuilder(QObject):
             if generator.__name__ in builders:
                 command = PYARMOR_DIST_BUILD.substitute(pyinstaller_kwargs=pyinstaller_kwargs,
                                                         pyarmor_kwargs=PYARMOR_OBFUSCATE_KWARGS,
-                                                        name=name+"-"+generator.tag)
+                                                        name=name+generator.build_suffix)
 
                 gen_obj = generator(self)
                 gen_obj.build_progress.connect(lambda progress, dev_id=device_id, gen_name=generator.__name__:
