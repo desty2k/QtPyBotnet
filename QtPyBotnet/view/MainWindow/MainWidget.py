@@ -25,7 +25,7 @@ class MainWidget(QWidget):
         self.setLayout(self.mainLayout)
 
     def setupUi(self, config):
-        self.map = GoogleMapsView(self, config.value("gmaps_key"))
+        self.map = GoogleMapsView(self, config.get("gmaps_key"))
         self.map.getHandler().markerDoubleClicked.connect(lambda bot_id, lat, lng: self.bot_double_clicked.emit(
             self.tableModel.getDeviceById(int(bot_id))))
         self.map.getHandler().markerClicked.connect(self.bot_clicked.emit)
