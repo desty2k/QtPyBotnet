@@ -50,6 +50,11 @@ class FramesWidget(BaseFrame):
             if self.frames_instances[0].disable_next_on_enter:
                 self.btn_box.button(QDialogButtonBox.Ok).setEnabled(False)
 
+    @Slot(dict)
+    def set_options(self, options):
+        for frame in self.frames_instances:
+            frame.set_options(options)
+
     @Slot()
     def collect_info(self) -> dict:
         """Get info from every page"""
