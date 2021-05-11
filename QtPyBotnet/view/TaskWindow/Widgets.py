@@ -192,7 +192,10 @@ class TaskKwargsGroupBox(QGroupBox):
             value_widget.setObjectName(key)
             value_widget.setToolTip(value.get("description"))
             self.widgets.append({"key": key_label, "value": value_widget})
-            self.widget_layout.addRow(key_label, value_widget)
+            if type(value_widget) is QCheckBox:
+                self.widget_layout.addWidget(value_widget)
+            else:
+                self.widget_layout.addRow(key_label, value_widget)
 
     def get_kwargs(self):
         """Returns user arguments"""
