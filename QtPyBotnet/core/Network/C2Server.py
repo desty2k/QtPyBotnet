@@ -42,7 +42,7 @@ class C2Server(QBalancedServer):
             task = bot.get_task_by_id(task_id)
             if task:
                 if state == "queued":
-                    task.set_created(datetime.datetime.now())
+                    task.set_queued(datetime.datetime.now())
                 elif state == "started":
                     task.set_running(datetime.datetime.now())
                 elif state == "finished":
