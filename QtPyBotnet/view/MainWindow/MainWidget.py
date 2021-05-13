@@ -10,6 +10,7 @@ from qrainbowstyle.widgets import GoogleMapsView
 
 from models import Bot
 from models.BotTable import TableModel
+from view.MainWindow.Widgets import MainWindowButton
 
 
 class MainWidget(QWidget):
@@ -22,6 +23,7 @@ class MainWidget(QWidget):
     def __init__(self, parent):
         super(MainWidget, self).__init__(parent)
         self.mainLayout = QHBoxLayout(self)
+        self.mainLayout.setSpacing(11)
         self.setLayout(self.mainLayout)
 
     def setupUi(self, config):
@@ -79,61 +81,47 @@ class MainWidget(QWidget):
 
         self.mainLayout.addWidget(self.splitter)
 
-        self.separatorLine = QFrame(self)
-        self.separatorLine.setFrameShape(QFrame.VLine)
-        self.separatorLine.setFrameShadow(QFrame.Sunken)
-
         sizepolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         sizepolicy.setHorizontalStretch(0)
         sizepolicy.setVerticalStretch(0)
 
         self.buttonsWidget = QWidget(self)
         self.buttonsWidget.setContentsMargins(0, 0, 0, 0)
-        self.buttonsWidget.setSizePolicy(sizepolicy)
         self.buttonsWidgetLayout = QVBoxLayout(self.buttonsWidget)
         self.buttonsWidgetLayout.setContentsMargins(0, 0, 0, 0)
+        self.buttonsWidgetLayout.setAlignment(Qt.AlignTop)
         self.buttonsWidget.setLayout(self.buttonsWidgetLayout)
 
-        btn_size = QSize(50, 50)
-
-        self.payload_button = QPushButton(self.buttonsWidget)
+        self.payload_button = MainWindowButton(self.buttonsWidget)
         self.payload_button.setToolTip("Create payload")
-        self.payload_button.setSizePolicy(sizepolicy)
-        self.payload_button.setMinimumSize(btn_size)
-        self.payload_button.setIconSize(self.payload_button.size())
         self.payload_button.clicked.connect(self.payload_button_clicked.emit)
         self.payload_button.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/3d-cube-sphere.svg")))
 
-        self.task_button = QPushButton(self.buttonsWidget)
+        self.task_button = MainWindowButton(self.buttonsWidget)
         self.task_button.setToolTip("Create tasks")
-        self.task_button.setSizePolicy(sizepolicy)
-        self.task_button.setMinimumSize(btn_size)
-        self.task_button.setIconSize(self.task_button.size())
         self.task_button.clicked.connect(self.task_button_clicked.emit)
         self.task_button.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/list-check.svg")))
 
-        self.disconnect_button = QPushButton(self.buttonsWidget)
-        self.disconnect_button.setToolTip("Disconnect")
-        self.disconnect_button.setSizePolicy(sizepolicy)
-        self.disconnect_button.setMinimumSize(btn_size)
-        self.disconnect_button.setIconSize(self.disconnect_button.size())
-        # self.disconnect_button.clicked.connect()
+        self.disconnect_button = MainWindowButton(self.buttonsWidget)
+        self.disconnect_button.setToolTip("Kick")
         self.disconnect_button.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/wifi-off.svg")))
 
-        self.close_button = QPushButton(self.buttonsWidget)
+        self.terminate_button = MainWindowButton(self.buttonsWidget)
+        self.terminate_button.setToolTip("Terminate")
+        self.terminate_button.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/user-off.svg")))
+
+        self.close_button = MainWindowButton(self.buttonsWidget)
         self.close_button.setToolTip("Close")
-        self.close_button.setSizePolicy(sizepolicy)
-        self.close_button.setMinimumSize(btn_size)
-        self.close_button.setIconSize(self.close_button.size())
         self.close_button.clicked.connect(self.window().closeClicked.emit)
         self.close_button.setIcon(QIcon(os.path.join(sys.path[0], "resources/icons/x.svg")))
 
         self.buttonsWidgetLayout.addWidget(self.payload_button)
         self.buttonsWidgetLayout.addWidget(self.task_button)
+        self.buttonsWidgetLayout.addWidget(self.terminate_button)
         self.buttonsWidgetLayout.addWidget(self.disconnect_button)
+        self.buttonsWidgetLayout.addStretch(1)
         self.buttonsWidgetLayout.addWidget(self.close_button)
 
-        self.mainLayout.addWidget(self.separatorLine)
         self.mainLayout.addWidget(self.buttonsWidget)
 
     @Slot(QModelIndex)
