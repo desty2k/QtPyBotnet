@@ -1,6 +1,11 @@
 Changelog
 =========
 
+- 0.2.1:
+    - Add docs
+    - Update main window buttons style
+    - Fix Python not being added to PATH in Docker image builds
+
 - 0.2:
     - Add new client icons
     - Add suffixes for client builds
