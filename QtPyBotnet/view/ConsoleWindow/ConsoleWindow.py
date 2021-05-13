@@ -44,45 +44,45 @@ class Console(FramelessWindow):
     def __init__(self, parent=None):
         super(Console, self).__init__(parent)
 
-        self._widget = QWidget(self)
-        self._console_layout = QVBoxLayout(self._widget)
-        self._widget.setLayout(self._console_layout)
+        self.widget = QWidget(self)
+        self.console_layout = QVBoxLayout(self.widget)
+        self.widget.setLayout(self.console_layout)
 
-        self._out_label = QLabel(self._widget)
+        self._out_label = QLabel(self.widget)
         self._out_label.setText("Output")
-        self._output = QTextEdit(self._widget)
-        self._output.setReadOnly(True)
-        self.highlighter = Highlighter(self._output.document())
-        self._output.setStyleSheet("background-color: rgb(0, 0, 0);")
-        self._output.setTextColor(QColor(0, 255, 0))
-        self._output.setFont(QFont(self._output.currentFont().family(), 10))
+        self.output = QTextEdit(self.widget)
+        self.output.setReadOnly(True)
+        self.highlighter = Highlighter(self.output.document())
+        self.output.setStyleSheet("background-color: rgb(0, 0, 0);")
+        self.output.setTextColor(QColor(0, 255, 0))
+        self.output.setFont(QFont(self.output.currentFont().family(), 10))
 
-        self._in_label = QLabel(self._widget)
+        self._in_label = QLabel(self.widget)
         self._in_label.setText("Command")
-        self._input = QLineEdit(self._widget)
-        self._input.setStyleSheet("background-color: rgb(0, 0, 0); color: rgb(0, 255, 0)")
-        self._input.setFont(QFont(self._output.currentFont().family(), 10))
+        self.input = QLineEdit(self.widget)
+        self.input.setStyleSheet("background-color: rgb(0, 0, 0); color: rgb(0, 255, 0)")
+        self.input.setFont(QFont(self.output.currentFont().family(), 10))
 
-        self.sendButton = QPushButton(self._widget)
+        self.sendButton = QPushButton(self.widget)
         self.sendButton.setObjectName("sendButton")
         self.sendButton.setText("Send command")
 
-        self._console_layout.addWidget(self._out_label)
-        self._console_layout.addWidget(self._output)
-        self._console_layout.addWidget(self._in_label)
-        self._console_layout.addWidget(self._input)
-        self._console_layout.addWidget(self.sendButton)
+        self.console_layout.addWidget(self._out_label)
+        self.console_layout.addWidget(self.output)
+        self.console_layout.addWidget(self._in_label)
+        self.console_layout.addWidget(self.input)
+        self.console_layout.addWidget(self.sendButton)
 
-        self.addContentWidget(self._widget)
+        self.addContentWidget(self.widget)
         QMetaObject.connectSlotsByName(self)
 
     def on_sendButton_clicked(self):
-        mess = self._input.text()
+        mess = self.input.text()
         try:
             mess = json.loads(mess)
             self.message.emit(mess)
-            self._input.setText("")
-            self._output.append("$: {}".format(mess))
+            self.input.setText("")
+            self.output.append("$: {}".format(mess))
 
         except json.JSONDecodeError as e:
             self.warn = FramelessCriticalMessageBox(self)
@@ -96,4 +96,4 @@ class Console(FramelessWindow):
             resp = "[{}]: {}".format(str(resp.get("event_type")).upper(), resp)
         else:
             resp = str(resp)
-        self._output.append(resp)
+        self.output.append(resp)
