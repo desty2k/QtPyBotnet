@@ -9,6 +9,7 @@ ARG PYARMOR_VERSION=6.7.0
 
 # we need wine for this all to work, so we'll use the PPA
 RUN set -x \
+    && set -e \
     && dpkg --add-architecture i386 \
     && apt-get update -qy \
     && apt-get install --no-install-recommends -qfy apt-transport-https software-properties-common wget \
@@ -82,6 +83,6 @@ WORKDIR /wine/drive_c/src/
 RUN mkdir -p /wine/drive_c/tmp
 
 COPY entrypoint-windows.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN cat /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]

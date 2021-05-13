@@ -13,6 +13,7 @@ COPY entrypoint-linux.sh /entrypoint.sh
 
 RUN \
     set -x \
+    && set -e \
     # update system
     && apt-get update \
     # install requirements
@@ -50,6 +51,7 @@ RUN \
     && pip install pyinstaller==$PYINSTALLER_VERSION \
     && pip install pyarmor==$PYARMOR_VERSION \
     && mkdir /src/ \
+    && cat /entrypoint.sh \
     && chmod +x /entrypoint.sh
 
 VOLUME /src/
