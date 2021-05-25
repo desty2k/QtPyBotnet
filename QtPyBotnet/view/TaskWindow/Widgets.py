@@ -1,9 +1,6 @@
 from qtpy.QtCore import Signal, Slot, Qt, QDateTime
-from qtpy.QtWidgets import (QWidget, QHBoxLayout, QGroupBox, QCheckBox, QLineEdit, QComboBox, QListWidget, QPushButton,
+from qtpy.QtWidgets import (QWidget, QGroupBox, QCheckBox, QLineEdit, QComboBox, QListWidget, QPushButton,
                             QTextEdit, QSpinBox, QVBoxLayout, QRadioButton, QFormLayout, QLabel, QDateTimeEdit)
-
-from core.config import ConfigManager
-from models import Task
 
 
 class MainTaskWidget(QWidget):
@@ -12,7 +9,7 @@ class MainTaskWidget(QWidget):
     def __init__(self, parent):
         super(MainTaskWidget, self).__init__(parent)
 
-        self.widget_layout = QHBoxLayout(self)
+        self.widget_layout = QVBoxLayout(self)
         self.setLayout(self.widget_layout)
 
         self.selection_widget = TaskSelectionGroupBox(self)
