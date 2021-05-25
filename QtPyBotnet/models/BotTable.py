@@ -12,7 +12,6 @@ class TableModel(QAbstractTableModel):
 
         self.hheaders = [
             {"text": "ID", "contains": "id"},
-            {"text": "Connected", "contains": "connected"},
             {"text": "IP address", "contains": "ip"},
             {"text": "Location", "contains": "geolocation"},
             {"text": "Architecture", "contains": "architecture"},
