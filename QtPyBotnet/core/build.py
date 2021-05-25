@@ -14,7 +14,7 @@ PYARMOR_PYINSTALLER_KWARGS = string.Template(" -F --exclude-module shiboken2 --e
                                              "--exclude-module PySide2 --exclude-module _tkinter "
                                              "--exclude-module tkinter --exclude-module Tkinter "
                                              "--exclude-module tcl --exclude-module tk --exclude-module FixTk "
-                                             "--exclude-module qtpy -i $icon")
+                                             "--exclude-module qtpy -i $icon -w ")
 
 PYARMOR_OBFUSCATE_KWARGS = " --restrict 2 --advanced 2 --wrap-mode 1 -r "
 
