@@ -67,11 +67,6 @@ def get_language():
         return None
 
 
-def average(data: list):
-    """Calculates the average of a list of values."""
-    return sum(data)/len(data)
-
-
 def dateToStr(date):
     """Convert date object to string."""
     from datetime import datetime
