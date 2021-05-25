@@ -11,7 +11,7 @@ from infos import *
 from config import *
 from tasks import *
 
-from utils import OutputLogger, decrypt, encrypt, MessageEncoder, MessageDecoder
+from utils import Logger, decrypt, encrypt, MessageEncoder, MessageDecoder
 
 HOST = '127.0.0.1'
 PORT = 8192
@@ -401,6 +401,7 @@ if __name__ == '__main__':
     if STARTUP_DELAY:
         time.sleep(STARTUP_DELAY)
 
-    log = OutputLogger()
+    log = Logger()
+    log.enable()
     m = Main()
     m.run()
