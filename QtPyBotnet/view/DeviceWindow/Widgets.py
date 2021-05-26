@@ -1,6 +1,7 @@
-from qtpy.QtWidgets import QWidget, QFormLayout, QMenu, QAction, QLabel, QHBoxLayout
-from qtpy.QtCore import Signal, Slot
-from qtpy.QtGui import QCursor, QCloseEvent
+from qtpy.QtWidgets import (QWidget, QFormLayout, QMenu, QAction, QLabel, QHBoxLayout, QPlainTextEdit, QLineEdit,
+                            QPushButton, QVBoxLayout)
+from qtpy.QtCore import Signal, Slot, Qt
+from qtpy.QtGui import QCursor, QCloseEvent, QSyntaxHighlighter, QTextCharFormat, QKeyEvent
 
 from models import Task, Bot
 from models.EventsTable import TasksTableModel
@@ -10,7 +11,6 @@ from view.DeviceWindow.TaskWindow import TaskWindow
 
 
 class WidgetWithCloseSignal(QWidget):
-    """WidgetWithCloseSignal documentation"""
     closed = Signal()
 
     def __init__(self, parent):
@@ -105,3 +105,51 @@ class DeviceTasksWidget(WidgetWithCloseSignal):
         self.menu.addAction(force_start_action)
         self.menu.addAction(stop_action)
         self.menu.popup(QCursor.pos())
+
+
+class Highlighter(QSyntaxHighlighter):
+    def __init__(self, parent):
+        super(Highlighter, self).__init__(parent)
+        self.inputformat = QTextCharFormat()
+        self.inputformat.setForeground(Qt.red)
+
+    def highlightBlock(self, text):
+        if text.startswith('$: '):
+            self.setFormat(0, len(text), self.inputformat)
+
+
+class ShellWidget(WidgetWithCloseSignal):
+    run_shell = Signal(int, str)
+
+    def __init__(self, bot, parent):
+        super(ShellWidget, self).__init__(parent)
+        self.tab_name = "Shell"
+        self.bot = bot
+
+        self.widget_layout = QVBoxLayout(self)
+        self.setLayout(self.widget_layout)
+
+        self.output_widget = QPlainTextEdit(self)
+        self.output_widget.setReadOnly(True)
+        self.highlighter = Highlighter(self.output_widget.document())
+        self.widget_layout.addWidget(self.output_widget)
+
+        self.input_widget = QLineEdit(self)
+        self.widget_layout.addWidget(self.input_widget)
+
+        self.send_button = QPushButton(self)
+        self.send_button.setText("Send")
+        self.send_button.clicked.connect(self.on_send_button_clicked)
+        self.widget_layout.addWidget(self.send_button)
+
+    @Slot()
+    def on_send_button_clicked(self):
+        text = self.input_widget.text()
+        self.output_widget.appendPlainText("$: {}".format(text))
+        self.run_shell.emit(self.bot.get_id(), text)
+        self.input_widget.clear()
+
+    @Slot(int, str)
+    def on_shell_message_received(self, bot_id, message):
+        if self.bot.get_id() == bot_id:
+            self.output_widget.appendPlainText(message)

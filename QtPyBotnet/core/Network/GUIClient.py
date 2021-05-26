@@ -19,6 +19,9 @@ class GUIClient(QThreadedClient):
     config_saved = Signal()
     config_validate_error = Signal(str)
 
+    shell_error = Signal(int, str)
+    shell_output = Signal(int, str)
+
     def __init__(self):
         super(GUIClient, self).__init__(loggerName=self.__class__.__name__)
         self.message.connect(self.on_message)
@@ -61,6 +64,11 @@ class GUIClient(QThreadedClient):
         elif event_type == "setup":
             if event == "options":
                 self.setup_options.emit(message.get("options"))
+        elif event_type == "shell":
+            if event == "error":
+                self.shell_error.emit(message.get("bot_id"), message.get("error"))
+            elif event == "output":
+                self.shell_output.emit(message.get("bot_id"), message.get("output"))
 
     @Slot()
     def on_get_setup_options(self):
@@ -128,3 +136,10 @@ class GUIClient(QThreadedClient):
     def on_stop_build(self):
         self.write({"event_type": "build",
                     "event": "stop"})
+
+    @Slot(int, str)
+    def on_run_shell(self, bot_id, command):
+        self.write({"event_type": "shell",
+                    "event": "run",
+                    "bot_id": bot_id,
+                    "command": command})

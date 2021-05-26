@@ -4,12 +4,13 @@ from qtpy.QtCore import Signal
 from qasync import asyncSlot
 
 from qrainbowstyle.windows import FramelessWindow
-from .Widgets import DeviceInfoWidget, DeviceTasksWidget
+from .Widgets import DeviceInfoWidget, DeviceTasksWidget, ShellWidget
 
 
 class DeviceWindow(FramelessWindow):
     stop_task = Signal(int, int)
     force_start_task = Signal(int, int)
+    run_shell = Signal(int, str)
 
     def __init__(self, bot, parent):
         super(DeviceWindow, self).__init__(parent)
@@ -22,10 +23,16 @@ class DeviceWindow(FramelessWindow):
         self.info_tab.updateInfo(bot)
 
         self.tasks_tab = DeviceTasksWidget(bot, self)
+
+        self.shell_tab = ShellWidget(bot, self)
+
         self.tab_widget.addTab(self.info_tab, self.info_tab.tab_name)
         self.tab_widget.addTab(self.tasks_tab, self.tasks_tab.tab_name)
+        self.tab_widget.addTab(self.shell_tab, self.shell_tab.tab_name)
+
         self.tasks_tab.stop_task.connect(self.stop_task.emit)
         self.tasks_tab.force_start_task.connect(self.force_start_task.emit)
+        self.shell_tab.run_shell.connect(self.run_shell.emit)
 
     @asyncSlot(list)
     async def updateProperties(self, info):
@@ -36,6 +43,11 @@ class DeviceWindow(FramelessWindow):
     async def updateTasks(self, tasks):
         if self.isVisible():
             self.tasks_tab.updateTasks(tasks)
+
+    @asyncSlot(int, str)
+    async def appendShell(self, device_id, output):
+        if self.isVisible():
+            self.shell_tab.on_shell_message_received(device_id, output)
 
     @asyncSlot()
     async def close(self):

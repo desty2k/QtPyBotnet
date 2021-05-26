@@ -150,6 +150,9 @@ class MainWindow(FramelessWindow):
         self.device_window = DeviceWindow(bot, self)
         self.device_window.stop_task.connect(self.client.on_stop_task)
         self.device_window.force_start_task.connect(self.client.on_force_start_task)
+        self.device_window.run_shell.connect(self.client.on_run_shell)
+        self.client.shell_error.connect(self.device_window.appendShell)
+        self.client.shell_output.connect(self.device_window.appendShell)
         self.device_window.show()
 
     @asyncSlot()

@@ -27,6 +27,8 @@ class GUIServer(QThreadedServer):
 
     setup_options = Signal(int)
 
+    run_shell = Signal(int, str)
+
     def __init__(self):
         super(GUIServer, self).__init__()
 
@@ -79,6 +81,10 @@ class GUIServer(QThreadedServer):
         elif event_type == "setup":
             if event == "options":
                 self.setup_options.emit(device_id)
+
+        elif event_type == "shell":
+            if event == "run":
+                self.run_shell.emit(message.get("bot_id"), message.get("command"))
 
     @asyncSlot(int, dict)
     async def on_setup_options(self, client_id, options):
@@ -183,3 +189,17 @@ class GUIServer(QThreadedServer):
     @asyncSlot(Info)
     async def on_bot_info(self, info):
         self.writeAll(info.serialize())
+
+    @asyncSlot(int, str)
+    async def on_shell_error(self, bot_id, error):
+        self.writeAll({"event_type": "shell",
+                       "event": "error",
+                       "bot_id": bot_id,
+                       "error": error})
+
+    @asyncSlot(int, str)
+    async def on_shell_output(self, bot_id, output):
+        self.writeAll({"event_type": "shell",
+                       "event": "output",
+                       "bot_id": bot_id,
+                       "output": output})
