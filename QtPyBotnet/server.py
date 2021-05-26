@@ -185,7 +185,7 @@ if __name__ == '__main__':
     app.setApplicationDisplayName(__app_name__)
 
     app.setStyleSheet(qrainbowstyle.load_stylesheet(style="Oceanic"))
-    font = QApplication.font()
+    font = app.font()
     font.setPointSize(9)
     app.setFont(font)
 
