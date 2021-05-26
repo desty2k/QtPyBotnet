@@ -109,6 +109,7 @@ def threaded(function):
         thread = TaskThread(target_func=function, args=args, kwargs=kwargs)
         thread.start()
         return thread
+
     return wrapper
 
 

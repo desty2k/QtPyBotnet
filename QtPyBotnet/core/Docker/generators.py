@@ -51,10 +51,8 @@ class BaseGenerator(QObject):
         self.__cancleded = True
         if self.__build_process:
             self.__build_process.terminate()
-            # os.kill(self.__build_process.processId(), signal.CTRL_C_EVENT)
         if self.__run_process:
             self.__run_process.terminate()
-            # os.kill(self.__run_process.processId(), signal.CTRL_C_EVENT)
 
     @Slot()
     def docker_build(self):

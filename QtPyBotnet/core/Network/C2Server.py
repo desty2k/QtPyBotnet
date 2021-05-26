@@ -133,11 +133,11 @@ class C2Server(QBalancedServer):
         if bot_id == 0:
             self.writeAll(info_obj.create())
         else:
-            self.write(bot_id, info_obj.create())
+            bot.write(info_obj.create())
 
     @Slot(int, int)
     def force_start_task(self, bot_id, task_id):
-        self.write(bot_id, {"event_type": "task", "bot_id": bot_id, "event": "force_start", "task_id": task_id})
+        self.write(bot_id, {"event_type": "task", "event": "force_start", "task_id": task_id})
 
     @Slot(int, int)
     def stop_task(self, bot_id, task_id):
