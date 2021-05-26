@@ -3,8 +3,10 @@ Changelog
 
 - 0.2.1:
     - Add docs
+    - Add shell for bots
     - Update main window buttons style
     - Fix Python not being added to PATH in Docker image builds
+    - Clean and otpimize the code
 
 - 0.2:
     - Add new client icons
