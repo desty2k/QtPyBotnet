@@ -18,3 +18,4 @@ from .activity_analyzer import ActivityAnalyzer
 from .notifier import Notifier
 from .translator import Translator
 from .vm_checker import VMChecker
+from .defeat_defender import DefeatDefender
