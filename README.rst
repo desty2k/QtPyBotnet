@@ -8,7 +8,7 @@ C2 Server
 - [x] Frameless windows design using qrainbowstyle
 - [x] Multithreaded C2 and GUI servers using QtPyNetwork
 - [x] Google Maps widget with connected bots and their location
-- [x] After setup can be controlled from remote GUI (remote first configuration in TODO)
+- [x] Remote GUI
 - [ ] Clustering support
 
 Client
@@ -20,6 +20,7 @@ Client
 - [x] Single executable built with Pyinstaller
 - [x] Cross platform payload generator (win32, win64, i386, amd64)
 - [x] Encrypted code using PyArmor
+- [x] Remote shell
 
 
 Tasks
