@@ -72,11 +72,13 @@ class Shell:
 
     def rm(self, name):
         """Remove file"""
-        return os.remove(name)
+        os.remove(name)
+        return name
 
     def rmdir(self, path):
         """Remove directory tree"""
-        return shutil.rmtree(path)
+        shutil.rmtree(path)
+        return path
 
     def eval(self, code):
         """Evaluate Python code"""
