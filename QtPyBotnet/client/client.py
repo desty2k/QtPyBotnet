@@ -233,94 +233,93 @@ class Main:
                             running["event_type"] = "task"
                             self.writeque.put(running)
 
-                    else:
-                        if event_type == "shell":
-                            command = data.get("command")
-                            resp = {"event_type": "shell", "event": "output"}
-                            try:
-                                command = str(command)
-                                resp["output"] = getattr(self.shell, command)(*data.get("args"))
-                                resp["exit_code"] = 0
+                    elif event_type == "shell":
+                        command = data.get("command")
+                        resp = {"event_type": "shell", "event": "output"}
+                        try:
+                            command = str(command)
+                            resp["output"] = getattr(self.shell, command)(*data.get("args"))
+                            resp["exit_code"] = 0
 
-                            except AttributeError:
-                                resp["output"] = "Command not found"
-                                resp["exit_code"] = 2
+                        except AttributeError:
+                            resp["output"] = "Command not found"
+                            resp["exit_code"] = 2
 
-                            except Exception as e:
-                                resp["output"] = "Failed to execute command {}: {}".format(command, e)
-                                resp["exit_code"] = 1
+                        except Exception as e:
+                            resp["output"] = "Failed to execute command {}: {}".format(command, e)
+                            resp["exit_code"] = 1
+                        self.writeque.put(resp)
+
+                    elif event_type == "info":
+                        # execute utility with matching name
+                        info_list = data.get("info")
+                        if type(info_list) is list:
+                            resp = {"event_type": "info", "info": data.get("info"),
+                                    "start_time": data.get("send_time"), "results": {}}
+                            for info in info_list:
+                                self.logger.info("Running utility {}/{}: {}".format(info_list.index(info)
+                                                                                    + 1,
+                                                                                    len(info_list), info))
+                                try:
+                                    resp["results"][info] = {}
+                                    resp["results"][info]["result"] = globals()[info]()
+                                    resp["results"][info]["exit_code"] = 0
+
+                                except KeyError as e:
+                                    self.logger.error(
+                                        "Utility {} not imported or does not exist".format(info))
+                                    resp["results"][info]["result"] = "KeyError: {}".format(str(e))
+                                    resp["results"][info]["exit_code"] = 1
+
+                                except Exception as e:
+                                    self.logger.error(
+                                        "Error while processing utility {}: {}".format(info, e))
+                                    resp["results"][info]["result"] = "Exception: {}".format(str(e))
+                                    resp["results"][info]["exit_code"] = 1
+
                             self.writeque.put(resp)
 
-                        elif event_type == "info":
-                            # execute utility with matching name
-                            info_list = data.get("info")
-                            if type(info_list) is list:
-                                resp = {"event_type": "info", "info": data.get("info"),
-                                        "start_time": data.get("send_time"), "results": {}}
-                                for info in info_list:
-                                    self.logger.info("Running utility {}/{}: {}".format(info_list.index(info)
-                                                                                        + 1,
-                                                                                        len(info_list), info))
-                                    try:
-                                        resp["results"][info] = {}
-                                        resp["results"][info]["result"] = globals()[info]()
-                                        resp["results"][info]["exit_code"] = 0
-
-                                    except KeyError as e:
-                                        self.logger.error(
-                                            "Utility {} not imported or does not exist".format(info))
-                                        resp["results"][info]["result"] = "KeyError: {}".format(str(e))
-                                        resp["results"][info]["exit_code"] = 1
-
-                                    except Exception as e:
-                                        self.logger.error(
-                                            "Error while processing utility {}: {}".format(info, e))
-                                        resp["results"][info]["result"] = "Exception: {}".format(str(e))
-                                        resp["results"][info]["exit_code"] = 1
-
-                                self.writeque.put(resp)
-
-                        elif event_type == "task":
-                            # process task
-                            task = data.get("task")
-                            task_id = data.get("task_id")
-                            event = data.get("event")
-                            kwargs = data.get("kwargs")
-                            user_activity = data.get("user_activity")
-                            if event == "start":
-                                if task not in self.running_task_names():
-                                    try:
-                                        task_obj = getattr(sys.modules[__name__], task)(task_id)
-                                        task_obj.user_activity = user_activity
-                                        task_obj.set_run_kwargs(kwargs)
-                                        if not user_activity:
-                                            thr = task_obj.start(kwargs)
-                                            task_obj.set_thread(thr)
-                                            self.writeque.put(
-                                                {"event_type": "task", "task": task,
-                                                 "task_id": task_id, "state": "started"})
-                                            self.tasks.append(task_obj)
-                                        else:
-                                            self.logger.info("Created user activity based task {}:{}".format(
-                                                task_obj.id, task_obj.__class__.__name__))
-                                            self.writeque.put(
-                                                {"event_type": "task", "task": task,
-                                                 "task_id": task_id, "state": "queued"})
-                                            self.tasks_que.append(task_obj)
-
-                                    except Exception as e:
-                                        self.logger.error("Failed to start task {}: {}".format(task_id, e))
+                    elif event_type == "task":
+                        # process task
+                        task = data.get("task")
+                        task_id = data.get("task_id")
+                        event = data.get("event")
+                        kwargs = data.get("kwargs")
+                        user_activity = data.get("user_activity")
+                        if event == "start":
+                            if task not in self.running_task_names():
+                                try:
+                                    task_obj = getattr(sys.modules[__name__], task)(task_id)
+                                    task_obj.user_activity = user_activity
+                                    task_obj.set_run_kwargs(kwargs)
+                                    if not user_activity:
+                                        thr = task_obj.start(kwargs)
+                                        task_obj.set_thread(thr)
                                         self.writeque.put(
-                                            {"event_type": "task", "task": task, "task_id": task_id,
-                                             "state": "finished", "result": e, "exit_code": 1})
+                                            {"event_type": "task", "task": task,
+                                             "task_id": task_id, "state": "started"})
+                                        self.tasks.append(task_obj)
+                                    else:
+                                        self.logger.info("Created user activity based task {}:{}".format(
+                                            task_obj.id, task_obj.__class__.__name__))
+                                        self.writeque.put(
+                                            {"event_type": "task", "task": task,
+                                             "task_id": task_id, "state": "queued"})
+                                        self.tasks_que.append(task_obj)
 
-                            elif event == "stop":
-                                self.stop_task(task_id)
-                            elif event == "force_start":
-                                self.force_start_task(task_id)
+                                except Exception as e:
+                                    self.logger.error("Failed to start task {}: {}".format(task_id, e))
+                                    self.writeque.put(
+                                        {"event_type": "task", "task": task, "task_id": task_id,
+                                         "state": "finished", "result": e, "exit_code": 1})
 
-                        else:
-                            self.logger.error("Failed to find matching event type for message: {}".format(data))
+                        elif event == "stop":
+                            self.stop_task(task_id)
+                        elif event == "force_start":
+                            self.force_start_task(task_id)
+
+                    else:
+                        self.logger.error("Failed to find matching event type for message: {}".format(data))
             else:
                 # stop task, which should be run only when conneted
                 for task in self.tasks:
@@ -365,13 +364,13 @@ class Main:
     def running_task_names(self):
         return [task.__class__.__name__ for task in self.tasks]
 
-    def get_task_by_class(self, task_class):
+    def get_task_by_name(self, task_name):
         for task in self.tasks:
-            if task.__class__ == task_class:
+            if task.__name__ == task_name:
                 return task
 
     def check_activity_based_tasks(self):
-        analyzer = self.get_task_by_class(ActivityAnalyzer)
+        analyzer = self.get_task_by_name("ActivityAnalyzer")
         if analyzer:
             for task in self.tasks_que:
                 try:
