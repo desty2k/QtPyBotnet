@@ -13,6 +13,7 @@ class Task:
     experimental = False
     stop_if_disconnected = False
     kwargs = {}
+    packages = []
 
     def __init__(self, task_id, result={}, exit_code=None, user_activity=0):
         super(Task, self).__init__()

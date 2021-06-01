@@ -10,6 +10,7 @@ class Translator(Task):
     kwargs = {"text": {"type": str, "description": "Text to translate.", "default": ""},
               "to_lang": {"type": str, "description": "Language to translate text to. If empty, use OS language.",
                           "default": ""}}
+    packages = ["deep_translator"]
 
     def __init__(self, task_id):
         super(Translator, self).__init__(task_id)

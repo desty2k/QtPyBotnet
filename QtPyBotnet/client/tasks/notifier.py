@@ -13,6 +13,7 @@ class Notifier(Task):
               "translate": {"type": bool,
                             "description": "Use Translator task to translate notification title and description.",
                             "default": True}}
+    packages = ["pynotifier"]
 
     def __init__(self, task_id):
         super(Notifier, self).__init__(task_id)

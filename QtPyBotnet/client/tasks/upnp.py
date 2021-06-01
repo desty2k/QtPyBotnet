@@ -8,6 +8,7 @@ class UPnPForward(Task):
     description = __doc__
     administrator = {"win32": False, "linux": False, "darwin": False}
     experimental = False
+    packages = ["upnpclient"]
 
     def __init__(self, task_id):
         super(UPnPForward, self).__init__(task_id)

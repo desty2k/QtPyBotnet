@@ -1,16 +1,13 @@
 from tasks.__task import Task
 
 
-def cv_size(image):
-    return image.shape[1], image.shape[0]
-
-
 class Webcam(Task):
     """Capture image from webcam."""
     platforms = ["win32", "linux", "darwin"]
     description = __doc__
     administrator = {"win32": False, "linux": False, "darwin": False}
     experimental = True
+    packages = ["cv2"]
 
     def __init__(self, task_id):
         super(Webcam, self).__init__(task_id)
@@ -27,7 +24,7 @@ class Webcam(Task):
         if not r:
             raise Exception("Unable to access webcam")
 
-        is_success, im_buf_arr = imencode(".png", cv_size(f))
+        is_success, im_buf_arr = imencode(".png", (f.shape[1], f.shape[0]))
         byte_im = im_buf_arr.tobytes()
         img = b64encode(byte_im).decode()
         return {"type": "images", "images": [img]}

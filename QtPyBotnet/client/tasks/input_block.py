@@ -8,6 +8,7 @@ class InputBlock(Task):
     administrator = {"win32": True}
     kwargs = {"keyboard_block": {"type": bool, "description": "Block keyboard", "default": True},
               "mouse_block": {"type": bool, "description": "Block mouse", "default": True}}
+    packages = ["keyboard", "mouse"]
 
     def __init__(self, task_id):
         super(InputBlock, self).__init__(task_id)
