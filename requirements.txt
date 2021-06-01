@@ -1,6 +1,7 @@
 PyQt5
 qtpy
 qrainbowstyle
+QtPyNetwork
 opencv-python
 cryptography
 qasync

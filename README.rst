@@ -71,14 +71,16 @@ Preview images
 Installation
 ------------
 
-1. Download QtPyNetwork from https://github.com/desty2k/QtPyNetwork and install it using
-
+1. Clone QtPyBotnet repository
     .. code:: bash
 
-        pip install .
+        git clone https://github.com/desty2k/QtPyBotnet.git
 
+2. Change working directory
+    .. code:: bash
 
-2. Clone QtPyBotnet repository
+        cd QtPyBotnet
+
 3. Install requirements using
 
     .. code:: bash
@@ -89,6 +91,7 @@ Installation
 
     .. code:: bash
 
+        cd QtPyBotnet
         python server.py
 
 5. Follow first setup wizard.
