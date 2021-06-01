@@ -23,7 +23,7 @@ class ConfigManager(QObject):
 
     available_tasks = Signal(int, list)
     available_infos = Signal(int, list)
-    
+
     setup_options = Signal(int, dict)
 
     def __init__(self):
@@ -121,16 +121,21 @@ class ConfigManager(QObject):
         # network interfaces
         interfaces = []
         for interface, snics in psutil.net_if_addrs().items():
-            mac = None
-            for snic in snics:
-                if snic.family == -1:
-                    mac = snic.address
-                if snic.family == 2:
-                    if mac:
-                        interfaces.append({"ip": snic.address,
-                                           "netmask": snic.netmask,
-                                           "name": interface,
-                                           "mac": mac})
+            families = [snic.family for snic in snics]
+            if psutil.AF_LINK in families and socket.AF_INET in families:
+                for snic in snics:
+                    if snic.family == psutil.AF_LINK:
+                        mac = snic.address
+                    if snic.family == socket.AF_INET:
+                        ip = snic.address
+                        netmask = snic.netmask
+                        name = interface
+
+                interfaces.append({"ip": ip,
+                                   "netmask": netmask,
+                                   "name": name,
+                                   "mac": mac})
+
         resp["interfaces"] = interfaces
         self.setup_options.emit(device_id, resp)
 
