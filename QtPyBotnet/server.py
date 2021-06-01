@@ -17,7 +17,7 @@ from core.Network import GUIServer, C2Server
 from core.build import ClientBuilder
 from core.config import ConfigManager
 from core.logger import Logger
-from utils import MessageDecoder, MessageEncoder
+from client.utils import MessageDecoder, MessageEncoder
 from view.MainWindow import MainWindow
 
 logging.getLogger('qasync').setLevel(logging.WARNING)

@@ -11,7 +11,6 @@ from qasync import asyncSlot, asyncClose
 
 from models import Bot
 from core.Network import GUIClient
-from utils import MessageDecoder, MessageEncoder
 from view.TaskWindow import TaskWindow
 from view.ConsoleWindow import Console
 from view.DeviceWindow import DeviceWindow
@@ -19,6 +18,7 @@ from view.PayloadWindow import PayloadWindow
 from view.MainWindow import TitlebarMenu, MainWidget
 from view.RemoteConnectWindow import RemoteConnectWindow
 from view.SetupWindow import SetupDialog
+from client.utils import MessageDecoder, MessageEncoder
 
 
 class MainWindow(FramelessWindow):
