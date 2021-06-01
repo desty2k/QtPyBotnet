@@ -1,3 +1,4 @@
+import os
 import sys
 import asyncio
 import logging
@@ -174,6 +175,9 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--verbosity", action="count",
                         help="increase logging verbosity", default=0)
     args = parser.parse_args()
+
+    if args.nogui:
+        os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
