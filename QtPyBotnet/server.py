@@ -170,7 +170,7 @@ if __name__ == '__main__':
     parser.add_argument('--nogui', action='store_true', help='run in headless mode')
     parser.add_argument('--reset', action='store_true', help='remove application settings')
     parser.add_argument('-r', '--remote', action='store_true', help='run in remote control mode')
-    parser.add_argument('--version', action='version', version='v{}'.format(__version__),
+    parser.add_argument('-V', '--version', action='version', version='v{}'.format(__version__),
                         help='print version and exit')
     parser.add_argument("-v", "--verbosity", action="count",
                         help="increase logging verbosity", default=0)
