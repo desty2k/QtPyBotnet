@@ -72,11 +72,13 @@ Installation
 ------------
 
 1. Clone QtPyBotnet repository
+
     .. code:: bash
 
         git clone https://github.com/desty2k/QtPyBotnet.git
 
 2. Change working directory
+
     .. code:: bash
 
         cd QtPyBotnet
@@ -95,6 +97,7 @@ Installation
         python server.py
 
 5. Follow first setup wizard.
+
 
 If you want to reset configuration use
 
