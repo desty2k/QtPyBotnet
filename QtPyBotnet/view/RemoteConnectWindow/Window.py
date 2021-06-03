@@ -58,6 +58,17 @@ class RemoteConnectWindow(FramelessWindow):
         self.close()
 
     @Slot()
+    def on_gui_client_failed_to_connect(self):
+        self.connect_button.setEnabled(True)
+        self.spinner.stop()
+        self.warning_messagebox = FramelessWarningMessageBox(self)
+        self.warning_messagebox.setWindowModality(Qt.WindowModal)
+        self.warning_messagebox.setStandardButtons(QDialogButtonBox.Yes | QDialogButtonBox.No)
+        self.warning_messagebox.button(QDialogButtonBox.No).clicked.connect(self.closeClicked.emit)
+        self.warning_messagebox.setText("Failed to connect to GUI server. Do you want to retry?")
+        self.warning_messagebox.show()
+
+    @Slot()
     def on_connect_clicked(self):
         self.connect_button.setEnabled(False)
         self.spinner.start()
