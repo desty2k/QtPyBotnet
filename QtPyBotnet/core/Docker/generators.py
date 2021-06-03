@@ -65,8 +65,8 @@ class BaseGenerator(QObject):
         self.__build_process.setProcessChannelMode(QProcess.MergedChannels)
         self.__build_process.setWorkingDirectory("./core/Docker")
         self.__build_process.finished.connect(self.__on_docker_build_finished)
-        self.__build_process.readyRead.connect(lambda: self.build_progress.emit(bytes(
-            self.__build_process.readAll()).decode('mbcs')))
+        self.__build_process.readyRead.connect(lambda: self.build_progress.emit(
+            str(self.__build_process.readAll().data(), encoding='utf-8')))
         self.__build_process.start(command.substitute(TAG=self.tag, DOCKERFILE=self.dockerfile))
 
     @Slot(str)
@@ -79,16 +79,19 @@ class BaseGenerator(QObject):
         self.tmpdir = tempfile.TemporaryDirectory()
         copy_tree("./client/", self.tmpdir.name)
         self.build_progress.emit("<GENERATOR> Created temporary directory: {}".format(self.tmpdir.name))
+        command = command.substitute(TAG=self.tag,
+                                     DOCKERFILE=self.dockerfile,
+                                     COMMAND=self.__run_command)
+
         self.logger.info("Created temporary directory: {}".format(self.tmpdir.name))
         self.__run_process = QProcess(self)
         self.__run_process.setProcessChannelMode(QProcess.MergedChannels)
         self.__run_process.setWorkingDirectory(self.tmpdir.name)
         self.__run_process.finished.connect(self.__on_docker_run_finished)
-        self.__run_process.readyRead.connect(lambda: self.build_progress.emit(bytes(
-            self.__run_process.readAll()).decode('mbcs')))
-        self.__run_process.start(command.substitute(TAG=self.tag,
-                                 DOCKERFILE=self.dockerfile,
-                                 COMMAND=self.__run_command))
+        self.__run_process.readyRead.connect(lambda: self.build_progress.emit(
+            str(self.__run_process.readAll().data(), encoding="utf-8")))
+        self.__run_process.started.connect(lambda: self.build_progress.emit("<GENERATOR> Running: {}".format(command)))
+        self.__run_process.start(command)
 
     @Slot(int, QProcess.ExitStatus)
     def __on_docker_build_finished(self, exit_code, exit_status):
