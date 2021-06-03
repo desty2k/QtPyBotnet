@@ -35,6 +35,7 @@ class MainWindow(FramelessWindow):
         # windows and widgets
         self.connect_dialog = None
         self.setup_dialog = None
+        self.close_dialog = None
 
         self.device_window = None
         self.task_window = None
@@ -66,8 +67,9 @@ class MainWindow(FramelessWindow):
     async def setup_connect_dialog(self):
         """Show connect dialog."""
         self.connect_dialog = RemoteConnectWindow()
-        self.client.connected.connect(self.connect_dialog.on_gui_client_connected)
         self.client.connected.connect(self.show)
+        self.client.connected.connect(self.connect_dialog.on_gui_client_connected)
+        self.client.failed_to_connect.connect(self.connect_dialog.on_gui_client_failed_to_connect)
         self.connect_dialog.connect_clicked.connect(self.connect_to_gui_server)
         self.connect_dialog.closeClicked.connect(self.close_connect_dialog)
         self.connect_dialog.show()
@@ -82,6 +84,7 @@ class MainWindow(FramelessWindow):
     @asyncSlot(str, int)
     async def on_gui_client_connected(self, server_ip, server_port):
         """Client connected to GUI server successfully."""
+        self.client.disconnected.connect(self.on_gui_client_disconnected)
         self.client.on_get_config()
 
     @asyncSlot(str)
@@ -184,6 +187,16 @@ class MainWindow(FramelessWindow):
         self.close_dialog.show()
 
     @asyncSlot()
+    async def on_gui_client_disconnected(self):
+        self.setEnabled(False)
+        self.close_dialog = FramelessCriticalMessageBox(self)
+        self.close_dialog.setWindowModality(Qt.WindowModal)
+        self.close_dialog.setStandardButtons(QDialogButtonBox.Ok)
+        self.close_dialog.button(QDialogButtonBox.Ok).clicked.connect(self.close)
+        self.close_dialog.setText("Connection lost! Application will be closed.")
+        self.close_dialog.show()
+
+    @asyncSlot()
     async def close_with_server(self):
         self.client.disconnected.connect(self.close)
         self.client.on_app_close()
@@ -200,6 +213,8 @@ class MainWindow(FramelessWindow):
 
     @asyncSlot()
     async def close(self):
+        if self.close_dialog:
+            self.close_dialog.close()
         if self.setup_dialog:
             self.setup_dialog.close()
         if self.connect_dialog:
