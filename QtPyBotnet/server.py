@@ -179,6 +179,15 @@ if __name__ == '__main__':
     if args.nogui:
         os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
+    if getattr(sys, 'frozen', False):
+        application_path = os.path.dirname(sys.executable)
+    elif __file__:
+        application_path = os.path.dirname(__file__)
+    else:
+        application_path = "."
+    logging.debug("Application path is {}".format(application_path))
+    os.chdir(application_path)
+
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     QApplication.setQuitOnLastWindowClosed(False)
