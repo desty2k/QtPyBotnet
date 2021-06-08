@@ -1,6 +1,5 @@
 import os
 import re
-import json
 import base64
 import string
 import logging
@@ -73,6 +72,12 @@ class ClientBuilder(QObject):
                                                   pyarmor_kwargs=PYARMOR_OBFUSCATE_KWARGS,
                                                   name=name + generator.build_suffix)
                 gen_obj = generator(command)
+                gen_obj.build_update.connect(lambda progress, dev_id=device_id, gen_name=generator.__name__:
+                                               self.generator_progress.emit(dev_id, gen_name,
+                                                                            "<GENERATOR> " + progress))
+                gen_obj.build_error.connect(lambda progress, dev_id=device_id, gen_name=generator.__name__:
+                                            self.generator_progress.emit(dev_id, gen_name,
+                                                                         "<ERROR> " + progress))
                 gen_obj.build_progress.connect(lambda progress, dev_id=device_id, gen_name=generator.__name__:
                                                self.generator_progress.emit(dev_id, gen_name, progress))
                 gen_obj.build_finished.connect(lambda exit_code, dev_id=device_id, gen_name=generator.__name__:
