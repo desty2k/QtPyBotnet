@@ -12,10 +12,14 @@ class Highlighter(QSyntaxHighlighter):
         super(Highlighter, self).__init__(parent)
         self.generator_format = QTextCharFormat()
         self.generator_format.setForeground(Qt.yellow)
+        self.error_format = QTextCharFormat()
+        self.error_format.setForeground(Qt.red)
 
     def highlightBlock(self, text):
         if text.startswith('<GENERATOR>'):
             self.setFormat(0, len(text), self.generator_format)
+        elif text.startswith('<ERROR>'):
+            self.setFormat(0, len(text), self.error_format)
 
 
 class ProgressWindow(FramelessWindow):
@@ -41,14 +45,6 @@ class ProgressWindow(FramelessWindow):
     @Slot(str)
     def appendProgress(self, text):
         self.__progress_view.appendPlainText(text)
-
-    @Slot()
-    def setFinished(self):
-        pass
-
-    @Slot()
-    def setstarted(self):
-        pass
 
     @Slot()
     def __on_progress_text(self):
