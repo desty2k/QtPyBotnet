@@ -1,18 +1,18 @@
-from qtpy.QtCore import Slot, Signal, QObject, QProcess
-
 import os
-import sys
-import signal
-import string
+
+from qtpy.QtCore import Slot, Signal, QObject
+
+import re
+import docker
 import logging
 import tempfile
+import itertools
+
 from distutils.dir_util import copy_tree
+from docker.utils.json_stream import json_stream
+from docker.errors import BuildError
 
-docker_build_win = string.Template("cmd /c docker build -t ${TAG} -f ${DOCKERFILE} .")
-docker_build_linux = string.Template("docker build -t ${TAG} -f ${DOCKERFILE} .")
-
-docker_run_win = string.Template("cmd /c docker run --rm -v %cd%/:/src/ ${TAG} ${COMMAND}")
-docker_run_linux = string.Template("docker run --rm -v $$(pwd)/:/src/ ${TAG} ${COMMAND}")
+__all__ = ["i386Generator", "Amd64Generator", "Win32Generator", "Win64Generator"]
 
 
 class BaseGenerator(QObject):
@@ -25,14 +25,15 @@ class BaseGenerator(QObject):
     dockerfile = ""
     build_suffix = ""
 
-    def __init__(self, parent=None):
-        super(BaseGenerator, self).__init__(parent)
+    def __init__(self, command):
+        super(BaseGenerator, self).__init__(parent=None)
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.__run_command = ""
         self.__build_process = None
         self.__run_process = None
         self.__finished = False
         self.__cancleded = False
+        self.__run_command = command
+        self.tmpdir = None
 
     def setFinished(self, value):
         self.__finished = value
@@ -40,11 +41,10 @@ class BaseGenerator(QObject):
     def isFinished(self):
         return self.__finished
 
-    @Slot(str)
-    def start(self, run_command):
-        self.__run_command = run_command
-        self.docker_build()
+    @Slot()
+    def start(self):
         self.build_started.emit()
+        self.docker_build()
 
     @Slot()
     def stop(self):
@@ -57,69 +57,70 @@ class BaseGenerator(QObject):
     @Slot()
     def docker_build(self):
         self.build_progress.emit("<GENERATOR> Starting Docker image build.")
-        if sys.platform == "win32":
-            command = docker_build_win
-        else:
-            command = docker_build_linux
-        self.__build_process = QProcess(self)
-        self.__build_process.setProcessChannelMode(QProcess.MergedChannels)
-        self.__build_process.setWorkingDirectory("./core/Docker")
-        self.__build_process.finished.connect(self.__on_docker_build_finished)
-        self.__build_process.readyRead.connect(lambda: self.build_progress.emit(
-            str(self.__build_process.readAll().data(), encoding='utf-8')))
-        self.__build_process.start(command.substitute(TAG=self.tag, DOCKERFILE=self.dockerfile))
+        client = docker.from_env()
+        resp = client.api.build(path="./core/Docker", dockerfile=self.dockerfile, tag=self.tag, quiet=False)
+        if isinstance(resp, str):
+            return self.docker_run(client.images.get(resp))
+        last_event = None
+        image_id = None
+        result_stream, internal_stream = itertools.tee(json_stream(resp))
+        for chunk in internal_stream:
+            if 'error' in chunk:
+                self.build_error.emit(chunk['error'])
+                raise BuildError(chunk['error'], result_stream)
+            if 'stream' in chunk:
+                self.build_progress.emit(chunk['stream'])
+                match = re.search(
+                    r'(^Successfully built |sha256:)([0-9a-f]+)$',
+                    chunk['stream']
+                )
+                if match:
+                    image_id = match.group(2)
+            last_event = chunk
+        if image_id:
+            return self.docker_run(image_id)
+        raise BuildError(last_event or 'Unknown', result_stream)
 
     @Slot(str)
-    def docker_run(self):
-        self.build_progress.emit("<GENERATOR> Starting Docker run.")
-        if sys.platform == "win32":
-            command = docker_run_win
-        else:
-            command = docker_run_linux
-        self.tmpdir = tempfile.TemporaryDirectory()
-        copy_tree("./client/", self.tmpdir.name)
-        self.build_progress.emit("<GENERATOR> Created temporary directory: {}".format(self.tmpdir.name))
-        command = command.substitute(TAG=self.tag,
-                                     DOCKERFILE=self.dockerfile,
-                                     COMMAND=self.__run_command)
-
-        self.logger.info("Created temporary directory: {}".format(self.tmpdir.name))
-        self.__run_process = QProcess(self)
-        self.__run_process.setProcessChannelMode(QProcess.MergedChannels)
-        self.__run_process.setWorkingDirectory(self.tmpdir.name)
-        self.__run_process.finished.connect(self.__on_docker_run_finished)
-        self.__run_process.readyRead.connect(lambda: self.build_progress.emit(
-            str(self.__run_process.readAll().data(), encoding="utf-8")))
-        self.__run_process.started.connect(lambda: self.build_progress.emit("<GENERATOR> Running: {}".format(command)))
-        self.__run_process.start(command)
-
-    @Slot(int, QProcess.ExitStatus)
-    def __on_docker_build_finished(self, exit_code, exit_status):
+    def docker_run(self, image_id: str):
         if self.__cancleded:
-            self.build_progress.emit("<GENERATOR> Skipping Docker run.")
-            self.build_finished.emit(exit_code)
+            self.build_progress.emit("<GENERATOR> Skipping Docker run")
             self.__cleanup()
             return
 
-        if exit_code == 0:
-            self.build_progress.emit("<GENERATOR> Docker image building finished!")
-            self.docker_run()
-        else:
-            self.build_progress.emit("<GENERATOR> Docker image building failed!")
-            self.build_finished.emit(exit_code)
+        self.tmpdir = tempfile.TemporaryDirectory()
+        copy_tree("./client/", self.tmpdir.name)
 
-    @Slot(int, QProcess.ExitStatus)
-    def __on_docker_run_finished(self, exit_code, exit_status):
-        if exit_code == 0:
-            copy_tree(os.path.join(self.tmpdir.name, "./dist/"), "./client/dist/")
+        client = docker.from_env()
+        container = client.api.create_container(image_id, self.__run_command, detach=True,
+                                                volumes=['/src/'],
+                                                host_config=client.api.create_host_config(binds=[
+                                                    '{}:/src/'.format(self.tmpdir.name)
+                                                ]))
+        container = client.containers.get(container['Id'])
+        container.start()
+
+        logs = container.attach(stdout=True, stderr=True, stream=True, logs=True)
+        for log in logs:
+            self.build_progress.emit(str(log, encoding="utf-8"))
+
+        keep_build = True
+        exit_status = container.wait()['StatusCode']
+        if exit_status == 0:
+            if keep_build:
+                copy_tree(os.path.normpath(self.tmpdir.name), os.path.join("./client/dist/", self.dockerfile))
+            else:
+                copy_tree(os.path.normpath(os.path.join(self.tmpdir.name, "./dist/")), "./client/dist/")
+        else:
+            self.build_error.emit(str(container.logs(stdout=False, stderr=True), encoding="utf-8"))
         self.__cleanup()
-        self.build_progress.emit("<GENERATOR> {} run finished with exit code {}".format(
-            self.__class__.__name__, exit_code))
-        self.build_finished.emit(exit_code)
+        self.__finished = True
+        self.build_finished.emit(exit_status)
 
     def __cleanup(self):
         try:
-            self.tmpdir.cleanup()
+            if self.tmpdir:
+                self.tmpdir.cleanup()
             self.build_progress.emit("<GENERATOR> Cleanup successfull.")
         except Exception as e:
             self.build_progress.emit("<GENERATOR> Error while cleaning after build: {}".format(e))
