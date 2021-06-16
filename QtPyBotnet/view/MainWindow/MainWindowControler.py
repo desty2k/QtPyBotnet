@@ -17,7 +17,6 @@ from view.PayloadWindow import PayloadWindow
 from view.MainWindow import TitlebarMenu, MainWidget
 from view.RemoteConnectWindow import RemoteConnectWindow
 from view.SetupWindow import SetupDialog
-from client.utils import MessageDecoder, MessageEncoder
 
 
 class MainWindow(FramelessWindow):
@@ -76,9 +75,7 @@ class MainWindow(FramelessWindow):
     @Slot(str, int, bytes)
     def connect_to_gui_server(self, ip, port, key):
         """Try to connect to GUI server."""
-        self.client.start(ip, port, key.encode())
-        self.client.setJSONEncoder(MessageEncoder)
-        self.client.setJSONDecoder(MessageDecoder)
+        self.client.start(ip, port, key)
 
     @Slot(str, int)
     def on_gui_client_connected(self, server_ip, server_port):

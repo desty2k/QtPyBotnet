@@ -11,8 +11,8 @@ class TableModel(QAbstractTableModel):
         self.bots = []
 
         self.hheaders = [
-            {"text": "ID", "contains": "id"},
-            {"text": "IP address", "contains": "ip"},
+            {"text": "ID", "contains": "id", "exec": True},
+            {"text": "IP address", "contains": "ip", "exec": True},
             {"text": "Location", "contains": "geolocation"},
             {"text": "Architecture", "contains": "architecture"},
             {"text": "Username", "contains": "username"},
@@ -32,6 +32,8 @@ class TableModel(QAbstractTableModel):
         if 0 <= index.row() < self.rowCount() and 0 <= index.column() < self.columnCount():
             if role == Qt.DisplayRole:
                 data = getattr(self.bots[index.row()], self.hheaders[index.column()]["contains"])
+                if self.hheaders[index.column()].get("exec"):
+                    data = data()
                 if data is None:
                     return "Unknown"
                 elif type(data) is list:
@@ -98,10 +100,10 @@ class TableModel(QAbstractTableModel):
 
     def getDeviceIndexById(self, bot_id):
         for bot in self.bots:
-            if bot.get_id() == bot_id:
+            if bot.id() == bot_id:
                 return self.bots.index(bot)
 
     def getDeviceById(self, bot_id):
         for bot in self.bots:
-            if bot.get_id() == bot_id:
+            if bot.id() == bot_id:
                 return bot

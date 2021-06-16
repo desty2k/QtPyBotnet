@@ -1,6 +1,6 @@
 from qtpy.QtCore import Signal, Slot
-from QtPyNetwork.models import Device
 
+from models.Device import Device
 from models.Events import Info, Task
 
 import datetime
@@ -10,13 +10,11 @@ class Bot(Device):
     update_map = Signal(int, list)
     updated = Signal()
 
-    def __init__(self, bot_id: int, ip: str, port: int, **kwargs):
-        super(Bot, self).__init__(bot_id, ip, port)
+    def __init__(self, server, bot_id: int, ip: str, port: int, **kwargs):
+        super(Bot, self).__init__(server, bot_id, ip, port)
         # add later - uniqe number for each computer
         # ip and port may change - use mac addr?
         self.hash = None
-        self.key = None
-        self.connected = False
 
         self.public_ip = "Unknown"
         self.geolocation = "Unknown"
@@ -32,10 +30,6 @@ class Bot(Device):
         self.update(kwargs)
 
     @Slot()
-    def get_id(self):
-        return self.id
-
-    @Slot()
     def get_next_task_id(self):
         self.next_task_id = self.next_task_id + 1
         return self.next_task_id
@@ -45,14 +39,6 @@ class Bot(Device):
         for task in self.tasks:
             if task.get_id() == task_id:
                 return task
-
-    @Slot()
-    def is_connected(self):
-        return self.connected
-
-    @Slot(bytes)
-    def set_custom_key(self, key):
-        self.key = key
 
     @Slot(Info)
     def on_info_received(self, info: Info):
@@ -67,7 +53,7 @@ class Bot(Device):
                 if util.get("exit_code") == 0:
                     data[result] = util.get("result")
                     if result == "geolocation":
-                        self.update_map.emit(self.id, data[result])
+                        self.update_map.emit(self.id(), data[result])
                 else:
                     data[result] = "Unknown"
         self.update(data)

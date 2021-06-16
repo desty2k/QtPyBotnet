@@ -129,7 +129,7 @@ class MainWidget(QWidget):
         self.bot_double_clicked.emit(self.tableModel.getDeviceById(self.tableModel.index(index.row(), 0).data()))
 
     def add_bot(self, bot_id, ip, port, kwargs={}):
-        bot = Bot(bot_id, ip, port, **kwargs)
+        bot = Bot(None, bot_id, ip, port, **kwargs)
         bot.update_map.connect(lambda marker_id, loc: self.map.addMarker(marker_id, loc[0], loc[1]))
         self.tableModel.appendDevice(bot)
 
