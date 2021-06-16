@@ -1,9 +1,10 @@
 from qtpy.QtCore import Slot, Signal
 
-from QtPyNetwork.client import QThreadedClient
+from models.Bot import Bot
+from core.Network.SecureClient import SecureClient
 
 
-class GUIClient(QThreadedClient):
+class GUIClient(SecureClient):
     """GUI client."""
     bot_connected = Signal(int, str, int)
     bot_disconnected = Signal(int)
@@ -23,11 +24,11 @@ class GUIClient(QThreadedClient):
     shell_output = Signal(int, str)
 
     def __init__(self):
-        super(GUIClient, self).__init__(loggerName=self.__class__.__name__)
-        self.message.connect(self.on_message)
+        super(GUIClient, self).__init__()
 
-    @Slot(dict)
-    def on_message(self, message: dict):
+    @Slot(bytes)
+    def on_message(self, message: bytes):
+        message = super().on_message(message)
         event_type = message.get("event_type")
         event = message.get("event")
         if event_type == "app":
@@ -137,9 +138,9 @@ class GUIClient(QThreadedClient):
         self.write({"event_type": "build",
                     "event": "stop"})
 
-    @Slot(int, str)
-    def on_run_shell(self, bot_id, command):
+    @Slot(Bot, str)
+    def on_run_shell(self, bot, command):
         self.write({"event_type": "shell",
                     "event": "run",
-                    "bot_id": bot_id,
+                    "bot_id": bot.id(),
                     "command": command})
