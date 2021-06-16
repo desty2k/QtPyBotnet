@@ -16,7 +16,7 @@ class Highlighter(QSyntaxHighlighter):
         self.error_format.setForeground(Qt.red)
 
     def highlightBlock(self, text):
-        if text.startswith('<GENERATOR>'):
+        if text.startswith('<INFO>'):
             self.setFormat(0, len(text), self.generator_format)
         elif text.startswith('<ERROR>'):
             self.setFormat(0, len(text), self.error_format)
