@@ -178,6 +178,7 @@ if __name__ == '__main__':
         application_path = "."
     logging.debug("Application path is {}".format(application_path))
     os.chdir(application_path)
+    sys.path.append(os.path.abspath("./client/"))
 
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
