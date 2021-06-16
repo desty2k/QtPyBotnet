@@ -4,7 +4,6 @@ qrainbowstyle
 QtPyNetwork
 opencv-python
 cryptography
-qasync
 keyboard
 mouse
 pyperclip

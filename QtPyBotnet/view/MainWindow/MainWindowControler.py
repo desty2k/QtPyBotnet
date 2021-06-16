@@ -1,13 +1,12 @@
 import logging
 
-from qtpy.QtCore import QMetaObject, Signal, Qt, QSize
+from qtpy.QtCore import QMetaObject, Signal, Qt, QSize, Slot
 from qtpy.QtWidgets import QDialogButtonBox, QApplication
 
 from qrainbowstyle.windows import FramelessWindow, FramelessQuestionMessageBox, FramelessCriticalMessageBox, FramelessWarningMessageBox
 from qrainbowstyle.widgets import WaitingSpinner
 from qrainbowstyle.utils import StyleLooper
 
-from qasync import asyncSlot, asyncClose
 
 from models import Bot
 from core.Network import GUIClient
@@ -63,8 +62,8 @@ class MainWindow(FramelessWindow):
         self.closeClicked.connect(self.on_close_requested)
         self.resize(QSize(1500, 900))
 
-    @asyncSlot()
-    async def setup_connect_dialog(self):
+    @Slot()
+    def setup_connect_dialog(self):
         """Show connect dialog."""
         self.connect_dialog = RemoteConnectWindow()
         self.client.connected.connect(self.show)
@@ -74,29 +73,29 @@ class MainWindow(FramelessWindow):
         self.connect_dialog.closeClicked.connect(self.close_connect_dialog)
         self.connect_dialog.show()
 
-    @asyncSlot(str, int, str)
-    async def connect_to_gui_server(self, ip, port, key):
+    @Slot(str, int, bytes)
+    def connect_to_gui_server(self, ip, port, key):
         """Try to connect to GUI server."""
         self.client.start(ip, port, key.encode())
         self.client.setJSONEncoder(MessageEncoder)
         self.client.setJSONDecoder(MessageDecoder)
 
-    @asyncSlot(str, int)
-    async def on_gui_client_connected(self, server_ip, server_port):
+    @Slot(str, int)
+    def on_gui_client_connected(self, server_ip, server_port):
         """Client connected to GUI server successfully."""
         self.client.disconnected.connect(self.on_gui_client_disconnected)
         self.client.on_get_config()
 
-    @asyncSlot(str)
-    async def on_gui_client_error(self, error):
+    @Slot(str)
+    def on_gui_client_error(self, error):
         pass
 
-    @asyncSlot()
-    async def on_gui_client_failed_to_connect(self):
+    @Slot()
+    def on_gui_client_failed_to_connect(self):
         pass
 
-    @asyncSlot()
-    async def on_start_first_setup(self):
+    @Slot()
+    def on_start_first_setup(self):
         """When there is no config on server."""
         self.setup_dialog = SetupDialog()
         self.client.setup_options.connect(self.setup_dialog.set_options)
@@ -108,12 +107,12 @@ class MainWindow(FramelessWindow):
         self.client.on_get_setup_options()
         self.setup_dialog.show()
 
-    @asyncSlot()
-    async def on_first_setup_finished(self):
+    @Slot()
+    def on_first_setup_finished(self):
         self.setup_dialog.on_first_setup_finished()
 
-    @asyncSlot(dict)
-    async def on_gui_client_config(self, config: dict):
+    @Slot(dict)
+    def on_gui_client_config(self, config: dict):
         if config:
             self.content_widget.bot_double_clicked.connect(self.on_bot_double_clicked)
             self.content_widget.task_button_clicked.connect(self.on_task_button_clicked)
@@ -136,8 +135,8 @@ class MainWindow(FramelessWindow):
             self.addMenu(self.menu)
             QMetaObject.connectSlotsByName(self)
 
-    @asyncSlot()
-    async def on_task_button_clicked(self):
+    @Slot()
+    def on_task_button_clicked(self):
         if self.task_window:
             self.task_window.show()
         else:
@@ -148,8 +147,8 @@ class MainWindow(FramelessWindow):
             self.task_window.setupUi()
             self.task_window.show()
 
-    @asyncSlot(Bot)
-    async def on_bot_double_clicked(self, bot: Bot):
+    @Slot(Bot)
+    def on_bot_double_clicked(self, bot: Bot):
         self.device_window = DeviceWindow(bot, self)
         self.device_window.stop_task.connect(self.client.on_stop_task)
         self.device_window.force_start_task.connect(self.client.on_force_start_task)
@@ -158,8 +157,8 @@ class MainWindow(FramelessWindow):
         self.client.shell_output.connect(self.device_window.appendShell)
         self.device_window.show()
 
-    @asyncSlot()
-    async def on_payload_button_clicked(self):
+    @Slot()
+    def on_payload_button_clicked(self):
         if self.payload_window:
             self.payload_window.show()
         else:
@@ -171,12 +170,12 @@ class MainWindow(FramelessWindow):
             self.payload_window.setupUi()
             self.payload_window.show()
 
-    @asyncSlot()
-    async def on_show_console_triggered(self):
+    @Slot()
+    def on_show_console_triggered(self):
         self.console_window.show()
 
-    @asyncSlot()
-    async def on_close_requested(self):
+    @Slot()
+    def on_close_requested(self):
         self.close_dialog = FramelessQuestionMessageBox(self)
         self.close_dialog.setWindowModality(Qt.WindowModal)
         self.close_dialog.setStandardButtons(QDialogButtonBox.Yes | QDialogButtonBox.No)
@@ -186,8 +185,8 @@ class MainWindow(FramelessWindow):
         self.close_dialog.setText("Do you want to keep server running?")
         self.close_dialog.show()
 
-    @asyncSlot()
-    async def on_gui_client_disconnected(self):
+    @Slot()
+    def on_gui_client_disconnected(self):
         self.setEnabled(False)
         self.close_dialog = FramelessCriticalMessageBox(self)
         self.close_dialog.setWindowModality(Qt.WindowModal)
@@ -196,8 +195,8 @@ class MainWindow(FramelessWindow):
         self.close_dialog.setText("Connection lost! Application will be closed.")
         self.close_dialog.show()
 
-    @asyncSlot()
-    async def close_with_server(self):
+    @Slot()
+    def close_with_server(self):
         self.client.disconnected.connect(self.close)
         self.client.on_app_close()
         if self.spinner:
@@ -206,13 +205,13 @@ class MainWindow(FramelessWindow):
         if not self.local:
             QApplication.instance().exit()
 
-    @asyncSlot()
-    async def close_connect_dialog(self):
+    @Slot()
+    def close_connect_dialog(self):
         self.connect_dialog.close()
         QApplication.instance().exit()
 
-    @asyncSlot()
-    async def close(self):
+    @Slot()
+    def close(self):
         if self.close_dialog:
             self.close_dialog.close()
         if self.setup_dialog:

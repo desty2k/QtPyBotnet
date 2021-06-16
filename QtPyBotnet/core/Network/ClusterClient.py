@@ -1,5 +1,4 @@
-from qtpy.QtCore import Slot, Signal
-from qasync import asyncSlot
+from qtpy.QtCore import Signal, Slot
 
 from QtPyNetwork.client import QThreadedClient
 
@@ -12,7 +11,7 @@ class ClusterClient(QThreadedClient):
         super(ClusterClient, self).__init__(loggerName=self.__class__.__name__)
         self.message.connect(self.on_message)
 
-    @asyncSlot(dict)
+    @Slot(dict)
     def on_message(self, message: dict):
         event_type = message.get("event_type")
         if event_type == "connection":
@@ -30,15 +29,15 @@ class ClusterClient(QThreadedClient):
             elif event == "force_start":
                 pass
 
-    @asyncSlot(int, int)
-    async def on_bot_connected(self, bot_id: int):
+    @Slot(int, int)
+    def on_bot_connected(self, bot_id: int):
         """Kick bot from server."""
         self.write({"event_type": "connection",
                     "event": "disconnected",
                     "bot_id": bot_id})
 
-    @asyncSlot(int, int)
-    async def on_bot_disconnected(self, bot_id: int):
+    @Slot(int, int)
+    def on_bot_disconnected(self, bot_id: int):
         """Kick bot from server."""
         self.write({"event_type": "connection",
                     "event": "disconnected",

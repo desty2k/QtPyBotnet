@@ -1,17 +1,14 @@
 import os
 import sys
-import asyncio
 import logging
 import argparse
 import traceback
 
 from qtpy.QtWidgets import QApplication
-from qtpy.QtCore import Qt, QObject, qInstallMessageHandler
+from qtpy.QtCore import Qt, QObject, qInstallMessageHandler, Slot
 
 import qrainbowstyle
 from qrainbowstyle.extras import qt_message_handler
-
-from qasync import QEventLoop, asyncSlot
 
 from __init__ import __version__, __app_name__
 from core.Network import GUIServer, C2Server
@@ -20,9 +17,6 @@ from core.config import ConfigManager
 from core.logger import Logger
 from client.utils import MessageDecoder, MessageEncoder
 from view.MainWindow import MainWindow
-
-logging.getLogger('qasync').setLevel(logging.WARNING)
-logging.getLogger('asyncio').setLevel(logging.WARNING)
 
 
 class Main(QObject):
@@ -51,10 +45,10 @@ class Main(QObject):
             if config:
                 self.on_config_read(config)
 
-    @asyncSlot()
-    async def on_config_missing(self):
+    @Slot()
+    def on_config_missing(self):
         """Start GUI server with no config file."""
-        gui_ip, gui_port, gui_key = await self.gui_server.start_setup()
+        gui_ip, gui_port, gui_key = self.gui_server.start_setup()
         self.gui_server.save_config.connect(self.config_manager.save)
         self.gui_server.get_config.connect(self.config_manager.get)
         self.gui_server.setup_options.connect(self.config_manager.on_gui_server_get_setup_options)
@@ -76,8 +70,8 @@ class Main(QObject):
             self.gui.setup_cancelled.connect(self.exit)
             self.gui.connect_to_gui_server(gui_ip, gui_port, gui_key.decode())
 
-    @asyncSlot(dict)
-    async def on_config_read(self, config: dict):
+    @Slot(dict)
+    def on_config_read(self, config: dict):
         """Start GUI and C2 server."""
         self.logger.info("Configuration files found")
         gui_ip, gui_port, gui_key = config.get("gui_ip"), config.get("gui_port"), config.get("gui_key")
@@ -130,15 +124,15 @@ class Main(QObject):
             self.gui.connect_to_gui_server(gui_ip, gui_port, gui_key)
             self.gui.show()
 
-    @asyncSlot(int, str, int)
-    async def on_bot_connected(self, bot_id, ip, port):
+    @Slot(Bot, str, int)
+    def on_bot_connected(self, bot, ip, port):
         """Get basic informations from client."""
         infos = self.config_manager.value("after_connection_infos")
         self.c2server.send_info(bot_id, infos)
         self.gui_server.on_bot_connected(bot_id, ip, port)
 
-    @asyncSlot()
-    async def close(self):
+    @Slot()
+    def close(self):
         """Gracefully close server and GUI"""
         self.logger.info("Closing application...")
         if self.c2server:
@@ -150,9 +144,9 @@ class Main(QObject):
         if self.gui:
             self.gui.close()
 
-    @asyncSlot()
-    async def exit(self):
-        await self.close()
+    @Slot()
+    def exit(self):
+        self.close()
         QApplication.instance().exit()
 
 
@@ -178,7 +172,6 @@ if __name__ == '__main__':
 
     if args.nogui:
         os.environ["QT_QPA_PLATFORM"] = "offscreen"
-
     if getattr(sys, 'frozen', False):
         application_path = os.path.dirname(sys.executable)
     elif __file__:
@@ -202,9 +195,5 @@ if __name__ == '__main__':
     font.setPointSize(9)
     app.setFont(font)
 
-    loop = QEventLoop(app)
-    asyncio.set_event_loop(loop)
-
     m = Main(args)
-    with loop:
-        sys.exit(loop.run_forever())
+    sys.exit(app.exec())

@@ -1,8 +1,5 @@
 from qtpy.QtWidgets import QTabWidget
-from qtpy.QtCore import Signal
-
-from qasync import asyncSlot
-
+from qtpy.QtCore import Signal, Slot
 from qrainbowstyle.windows import FramelessWindow
 from .Widgets import DeviceInfoWidget, DeviceTasksWidget, ShellWidget
 
@@ -34,22 +31,22 @@ class DeviceWindow(FramelessWindow):
         self.tasks_tab.force_start_task.connect(self.force_start_task.emit)
         self.shell_tab.run_shell.connect(self.run_shell.emit)
 
-    @asyncSlot(list)
-    async def updateProperties(self, info):
+    @Slot(list)
+    def updateProperties(self, info):
         if self.isVisible():
             self.info_tab.updateInfo(info)
 
-    @asyncSlot(list)
-    async def updateTasks(self, tasks):
+    @Slot(list)
+    def updateTasks(self, tasks):
         if self.isVisible():
             self.tasks_tab.updateTasks(tasks)
 
-    @asyncSlot(int, str)
-    async def appendShell(self, device_id, output):
+    @Slot(int, str)
+    def appendShell(self, device_id, output):
         if self.isVisible():
             self.shell_tab.on_shell_message_received(device_id, output)
 
-    @asyncSlot()
-    async def close(self):
+    @Slot()
+    def close(self):
         super().close()
         self.deleteLater()

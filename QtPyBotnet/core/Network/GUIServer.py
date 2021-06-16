@@ -1,6 +1,5 @@
-from qasync import asyncSlot
-from qtpy.QtCore import Signal
 from QtPyNetwork.server import QThreadedServer
+from qtpy.QtCore import Signal, Slot
 
 import socket
 
@@ -32,17 +31,17 @@ class GUIServer(QThreadedServer):
     def __init__(self):
         super(GUIServer, self).__init__()
 
-    @asyncSlot()
-    async def start_setup(self):
         ip = socket.gethostbyname(socket.gethostname())
+    @Slot()
+    def start_setup(self):
         with socket.socket() as s:
             s.bind(('', 0))
             port = s.getsockname()[1]
         key = generate_key()
         return ip, port, key
 
-    @asyncSlot(int, dict)
-    async def on_message(self, device_id: int, message: dict):
+    @Slot(Device, bytes)
+    def on_message(self, device: Device, message: bytes):
         event_type = message.get("event_type")
         event = message.get("event")
         if event_type == "task":

@@ -2,7 +2,6 @@ import shlex
 import logging
 import datetime
 
-from qasync import asyncSlot
 from qtpy.QtCore import Slot, Signal
 from QtPyNetwork.server import QBalancedServer
 
@@ -29,8 +28,8 @@ class C2Server(QBalancedServer):
         self.connected.connect(self.pre_connection)
         self.error.connect(self.logger.error)
 
-    @asyncSlot(int, dict)
-    async def on_message(self, bot_id: int, message: dict):
+    @Slot(Bot, bytes)
+    def on_message(self, bot: Bot, message: bytes):
         """When server receives message from bot."""
         try:
             bot = self.getDeviceById(bot_id)
