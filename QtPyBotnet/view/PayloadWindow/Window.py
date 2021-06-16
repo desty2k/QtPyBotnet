@@ -30,7 +30,7 @@ class PayloadWindow(FramelessWindow):
         self.widget_layout = QFormLayout(self.content_widget)
         self.content_widget.setLayout(self.widget_layout)
 
-        self.spinner = WaitingSpinner(self, parent, modality=Qt.WindowModal,
+        self.spinner = WaitingSpinner(self, modality=Qt.WindowModal,
                                       roundness=70.0, fade=70.0, radius=15.0, lines=6,
                                       line_length=25.0, line_width=4.0, speed=1.0)
 
