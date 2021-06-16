@@ -1,6 +1,16 @@
 Changelog
 =========
 
+- 0.3.0:
+    - Remove qasync requirement, replace asyncSlots with Slots
+    - Use newest QtPyNetwork API (0.5.1)
+    - Add SecureServer and SecureClient
+    - Update signals and slots to use Device and Bot models instead of their IDs
+    - Use Bot and Device instances instead of bot IDs where possible
+    - Fix missing Slot decorators
+    - Fix recursion when creating build directory
+    -
+
 - 0.2.1:
     - Add docs
     - Add shell for bots
