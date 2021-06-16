@@ -58,6 +58,7 @@ class PayloadWindow(FramelessWindow):
         self.menu.addAction(self.reload_action)
         self.addMenu(self.menu)
 
+    @Slot()
     def setupUi(self):
         self.spinner.start()
         self.get_build_options.emit()
@@ -85,11 +86,13 @@ class PayloadWindow(FramelessWindow):
             elif event == "build_finished":
                 self.set_build_finished()
 
+    @Slot(str, str)
     def set_progress(self, generator_name, progress):
         for win in self.progress_windows:
             if win.generator() == generator_name:
                 win.appendProgress(progress)
 
+    @Slot(str)
     def set_started(self, generator_name):
         win = ProgressWindow(self, generator_name)
         win.show()
@@ -98,9 +101,11 @@ class PayloadWindow(FramelessWindow):
         self.reload_action.setEnabled(False)
         self.spinner.start()
 
+    @Slot(str, int)
     def set_generator_finished(self, generator_name, exit_code):
         self.logger.info("Generator {} finished with exit code {}.".format(generator_name, exit_code))
 
+    @Slot(list, list)
     def set_options(self, generators, icons):
         self.build_name_edit.clear()
         self.generators_list.clear()
@@ -119,6 +124,7 @@ class PayloadWindow(FramelessWindow):
             self.icon_combobox.addItem(ico, name)
         self.spinner.stop()
 
+    @Slot()
     def set_stopped(self):
         self.on_build_finished()
         self.build_button.setText("Build")
@@ -128,6 +134,7 @@ class PayloadWindow(FramelessWindow):
         self.stopped_messagebox.button(QDialogButtonBox.Ok).clicked.connect(self.stopped_messagebox.close)
         self.stopped_messagebox.show()
 
+    @Slot(str)
     def set_error(self, error):
         self.on_build_finished()
         self.build_button.setText("Build")
@@ -137,6 +144,7 @@ class PayloadWindow(FramelessWindow):
         self.error_messagebox.button(QDialogButtonBox.Ok).clicked.connect(self.error_messagebox.close)
         self.error_messagebox.show()
 
+    @Slot()
     def set_build_finished(self):
         self.on_build_finished()
         self.build_button.setText("Build")
@@ -165,6 +173,7 @@ class PayloadWindow(FramelessWindow):
             self.stop_build_messagebox.button(QDialogButtonBox.Ok).clicked.connect(self.stop_build_messagebox.close)
             self.stop_build_messagebox.show()
 
+    @Slot()
     def on_build_finished(self):
         self.reload_action.setEnabled(True)
         self.spinner.stop()
