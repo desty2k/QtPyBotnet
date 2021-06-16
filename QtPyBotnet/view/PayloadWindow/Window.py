@@ -177,3 +177,9 @@ class PayloadWindow(FramelessWindow):
     def on_build_finished(self):
         self.reload_action.setEnabled(True)
         self.spinner.stop()
+
+    @Slot()
+    def close(self) -> bool:
+        for win in self.progress_windows:
+            win.close()
+        return super().close()
