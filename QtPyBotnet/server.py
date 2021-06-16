@@ -166,10 +166,11 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--remote', action='store_true', help='run in remote control mode')
     parser.add_argument('-V', '--version', action='version', version='v{}'.format(__version__),
                         help='print version and exit')
-    parser.add_argument("-v", "--verbosity", action="count",
-                        help="increase logging verbosity", default=0)
+    parser.add_argument("--log-level", default=logging.NOTSET,
+                        type=lambda level: getattr(logging, level), help='Configure the logging level')
     args = parser.parse_args()
 
+    logger.set_level(args.log_level)
     if args.nogui:
         os.environ["QT_QPA_PLATFORM"] = "offscreen"
     if getattr(sys, 'frozen', False):
