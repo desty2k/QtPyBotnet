@@ -219,6 +219,8 @@ class MainWindow(FramelessWindow):
             self.setup_dialog.close()
         if self.connect_dialog:
             self.connect_dialog.close()
+        if self.payload_window:
+            self.payload_window.close()
         if self.client:
             self.client.close()
             self.client.wait()
