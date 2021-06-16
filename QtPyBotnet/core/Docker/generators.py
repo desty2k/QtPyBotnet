@@ -14,6 +14,9 @@ from docker.errors import BuildError
 __all__ = ["i386Generator", "Amd64Generator", "Win32Generator", "Win64Generator"]
 
 
+DIST_PATH = "./dist/"
+
+
 class BaseGenerator(QObject):
     build_progress = Signal(str)
     build_error = Signal(str)
@@ -65,7 +68,8 @@ class BaseGenerator(QObject):
     def docker_build(self):
         self.build_update.emit("Starting Docker image build.")
         try:
-            resp = self.__client.api.build(path="./core/Docker", dockerfile=self.dockerfile, tag=self.tag, quiet=False)
+            resp = self.__client.api.build(path="./core/Docker", dockerfile=self.dockerfile,
+                                           tag=self.tag, quiet=False, rm=True)
             if isinstance(resp, str):
                 return self.docker_run(self.__client.images.get(resp))
             last_event = None
@@ -102,21 +106,29 @@ class BaseGenerator(QObject):
 
         try:
             # create temporary directory and copy client source code
-            self.__tmpdir = tempfile.TemporaryDirectory()
+            self.__tmpdir = tempfile.TemporaryDirectory(dir="./build/")
+            tmp_dir_path = os.path.abspath(self.__tmpdir.name)
+            self.build_update.emit("Created temporary directory: {}".format(tmp_dir_path))
+
             copy_tree("./client/", self.__tmpdir.name)
-            self.build_update.emit("Created temporary directory: {}".format(self.__tmpdir.name))
-            self.build_update.emit("Temporary directory contents: {}".format(os.listdir(self.__tmpdir.name)))
+            self.build_update.emit("Temporary directory contents: {}".format(os.listdir(tmp_dir_path)))
         except Exception as e:
             self.build_error.emit("Failed to create temporary directory: {}".format(e))
+            self.build_finished.emit(1)
+            return
 
         try:
             # create and run container
             self.build_update.emit("Creating Docker container from image: {}".format(image_id))
-            container = self.__client.api.create_container(image_id, self.__run_command, detach=True,
-                                                           volumes=['/src/'],
-                                                           host_config=self.__client.api.create_host_config(binds=[
-                                                               '{}:/src/:rw'.format(self.__tmpdir.name)
-                                                           ]))
+            container = self.__client.api.create_container(image_id, self.__run_command,
+                                                           volumes=['/src'],
+                                                           host_config=self.__client.api.create_host_config(binds={
+                                                               tmp_dir_path: {
+                                                                   'bind': '/src',
+                                                                   'mode': 'rw',
+                                                               }
+                                                           }))
+
             container = self.__client.containers.get(container['Id'])
             self.build_update.emit("Starting Docker container")
             container.start()
@@ -131,9 +143,11 @@ class BaseGenerator(QObject):
             if exit_status == 0:
                 self.build_update.emit("Build process completed successfully")
                 if self.__keep_build:
-                    output_path = copy_tree(os.path.normpath(self.__tmpdir.name), os.path.join("./client/dist/", self.dockerfile))
+                    output_path = copy_tree(os.path.normpath(tmp_dir_path),
+                                            os.path.join(DIST_PATH, self.dockerfile))
                 else:
-                    output_path = copy_tree(os.path.normpath(os.path.join(self.__tmpdir.name, "./dist/")), "./client/dist/")
+                    output_path = copy_tree(os.path.normpath(os.path.join(tmp_dir_path, "./dist/")),
+                                            DIST_PATH)
                 self.build_update.emit("Executable path: {}".format(output_path))
             else:
                 self.build_error.emit(str(container.logs(stdout=False, stderr=True), encoding="utf-8"))

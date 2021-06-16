@@ -7,6 +7,7 @@ import ipaddress
 
 from qtpy.QtCore import Signal, QObject, Slot
 
+from models.Device import Device
 from core.crypto import generate_key
 from core.importer import get_subclassess_by_name, function_importer
 
@@ -16,15 +17,15 @@ class ConfigManager(QObject):
     config_missing = Signal()
     config_read = Signal(dict)
 
-    config_get = Signal(int, dict)
-    config_saved = Signal(int)
-    config_error = Signal(int, str)
-    validation_error = Signal(int, str)
+    config_get = Signal(Device, dict)
+    config_saved = Signal(Device)
+    config_error = Signal(Device, str)
+    validation_error = Signal(Device, str)
 
-    available_tasks = Signal(int, list)
-    available_infos = Signal(int, list)
+    available_tasks = Signal(Device, list)
+    available_infos = Signal(Device, list)
 
-    setup_options = Signal(int, dict)
+    setup_options = Signal(Device, dict)
 
     def __init__(self):
         super(ConfigManager, self).__init__(None)
@@ -46,31 +47,31 @@ class ConfigManager(QObject):
         else:
             raise Exception("Config not loaded")
 
-    @Slot(int, dict)
-    def save(self, device_id, config: dict):
+    @Slot(Device, dict)
+    def save(self, device, config: dict):
         try:
-            self.logger.info("Recevied config save request from {}: {}".format(device_id, config))
+            self.logger.info("Recevied config save request from {}: {}".format(device.id(), config))
             ipaddress.ip_address(config.get("gui_ip"))
             ipaddress.ip_address(config.get("c2_ip"))
         except Exception as e:
             self.logger.warning("Config validation failed")
-            self.validation_error.emit(device_id, str(e))
+            self.validation_error.emit(device.id(), str(e))
             return
 
         try:
             with open(self.__config_path, "w+") as f:
                 data = json.dumps(config, indent=self.__indent)
                 f.write(data)
-            self.config_saved.emit(device_id)
+            self.config_saved.emit(device)
             self.logger.info("Config written in {}".format(self.__config_path))
         except Exception as e:
-            self.config_error.emit(device_id, "Failed to create config: {}".format(e))
+            self.config_error.emit(device, "Failed to create config: {}".format(e))
 
-    @Slot(int)
-    def get(self, device_id):
-        self.config_get.emit(device_id, self.__config)
+    @Slot(Device)
+    def get(self, device):
+        self.config_get.emit(device, self.__config)
 
-    @Slot(int)
+    @Slot()
     def load(self) -> dict:
         if self.config_exists():
             data = open(self.__config_path, "r").read().encode()
@@ -84,9 +85,11 @@ class ConfigManager(QObject):
         else:
             self.config_missing.emit()
 
+    @Slot()
     def config_exists(self):
         return os.path.isfile(self.__config_path)
 
+    @Slot()
     def delete_config(self):
         if self.config_exists():
             os.remove(self.__config_path)
@@ -99,20 +102,20 @@ class ConfigManager(QObject):
     def get_infos():
         return function_importer("./client/", "infos")
 
-    @Slot(int)
-    def on_gui_server_get_tasks(self, device_id):
+    @Slot(Device)
+    def on_gui_server_get_tasks(self, device):
         tasks = []
         for task in self.get_tasks():
             tasks.append({"name": task.__name__, "platforms": task.platforms,
                           "administrator": task.administrator, "kwargs": task.kwargs})
-        self.available_tasks.emit(device_id, tasks)
+        self.available_tasks.emit(device, tasks)
 
-    @Slot(int)
-    def on_gui_server_get_infos(self, device_id):
-        self.available_infos.emit(device_id, self.get_infos())
+    @Slot(Device)
+    def on_gui_server_get_infos(self, device):
+        self.available_infos.emit(device, self.get_infos())
 
-    @Slot(int)
-    def on_gui_server_get_setup_options(self, device_id):
+    @Slot(Device)
+    def on_gui_server_get_setup_options(self, device):
         resp = {}
         # keys
         resp["c2_key"] = generate_key().decode()
@@ -137,5 +140,5 @@ class ConfigManager(QObject):
                                    "mac": mac})
 
         resp["interfaces"] = interfaces
-        self.setup_options.emit(device_id, resp)
+        self.setup_options.emit(device, resp)
 

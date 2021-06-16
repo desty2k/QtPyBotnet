@@ -13,9 +13,9 @@ def generate_key():
     return Fernet.generate_key()
 
 
-def validate_key(key: bytes):
+def validate_token(token: bytes):
     try:
-        Fernet._get_unverified_token_data(key)  # noqa
+        Fernet._get_unverified_token_data(token)  # noqa
         return True
     except InvalidToken:
         return False
