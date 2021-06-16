@@ -32,9 +32,10 @@ class SecureServer(QBaseServer):
         device.key = self.key
         if self.require_verification:
             device.custom_key = generate_key()
-            self.write(device, {"event_type": "assign", "encryption_key": device.custom_key.decode()})
+            device.write({"event_type": "assign", "encryption_key": device.custom_key.decode()})
         else:
             device.set_verified(True)
+            self.connected.emit(device, ip, port)
 
     @Slot(Device, bytes)
     def on_message(self, device: Device, message: bytes) -> dict:
