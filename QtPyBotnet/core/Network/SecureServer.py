@@ -7,7 +7,7 @@ import logging
 from cryptography.fernet import InvalidToken
 
 from models.Device import Device
-from utils import MessageDecoder, MessageEncoder
+from client.utils import MessageDecoder, MessageEncoder
 from core.crypto import encrypt, decrypt, validate_token, generate_key
 
 
