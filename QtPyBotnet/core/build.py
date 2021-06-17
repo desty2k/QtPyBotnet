@@ -41,6 +41,9 @@ class ClientBuilder(QObject):
 
     @Slot(Device, str, str, list)
     def start(self, device, name, icon, builders):
+        logging.getLogger("docker").setLevel(logging.WARNING)
+        logging.getLogger("urllib3").setLevel(logging.WARNING)
+
         if self.device or self.running_builders:
             self.build_error.emit(device, "Build in progress!")
             return
@@ -109,6 +112,8 @@ class ClientBuilder(QObject):
                 generator.setFinished(True)
         self.generator_finished.emit(device, gen_name, exit_code)
         if all(gen.isFinished() for gen, thr in self.running_builders):
+            logging.getLogger("docker").setLevel(logging.NOTSET)
+            logging.getLogger("urllib3").setLevel(logging.NOTSET)
             self.device = None
             self.build_finished.emit(device)
 
