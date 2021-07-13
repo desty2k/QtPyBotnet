@@ -118,8 +118,8 @@ class Main(QObject):
 
         if self.start_gui:
             self.gui = MainWindow(local=True)
-            self.gui.connect_to_gui_server(gui_ip, gui_port, gui_key)
             self.gui.show()
+            self.gui.connect_to_gui_server(gui_ip, gui_port, gui_key)
 
     @Slot(Bot, str, int)
     def on_bot_connected(self, bot, ip, port):
