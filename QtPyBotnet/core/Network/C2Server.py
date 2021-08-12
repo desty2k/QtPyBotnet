@@ -1,3 +1,4 @@
+import paker
 import shlex
 import logging
 import datetime
@@ -17,6 +18,7 @@ class C2Server(SecureBalancedServer):
     shell_error = Signal(Bot, str)
     shell_output = Signal(Bot, str)
 
+    module_dump_error = Signal(Bot, str)
     task_create_error = Signal(int, str)
 
     def __init__(self):

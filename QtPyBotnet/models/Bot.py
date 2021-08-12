@@ -25,6 +25,7 @@ class Bot(Device):
         self.time_created = datetime.datetime.now()
 
         self.tasks = []
+        self.modules = []
         self.next_task_id = 0
         self.update(kwargs)
 
