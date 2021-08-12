@@ -32,7 +32,7 @@ class ConfigManager(QObject):
         self.__config = {}
         self.__key = ""
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.__config_path = ".\\QtPyBotnet.cfg"
+        self.__config_path = ".\\QtPyBotnet.json"
         self.__indent = 2
 
     def setValue(self, key, value):
