@@ -105,4 +105,4 @@ class C2Server(SecureBalancedServer):
                 args = command[1:]
             bot.write({"event_type": "shell", "event": "run", "command": command[0], "args": args})
         except Exception as e:
-            self.shell_error.emit(bot_id, "Failed to execute command {}: {}".format(command, e))
+            self.shell_error.emit(bot, "Failed to execute command {}: {}".format(command, e))
