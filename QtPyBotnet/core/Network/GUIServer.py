@@ -214,3 +214,9 @@ class GUIServer(SecureThreadedServer):
     @Slot(Info)
     def on_bot_info(self, info):
         self.write_all(info.serialize())
+
+    @Slot(str)
+    def on_log_signal(self, log: str):
+        self.write_all({"event_type": "app",
+                        "event": "log",
+                        "log": log})

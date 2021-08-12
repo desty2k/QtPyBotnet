@@ -1,6 +1,20 @@
 import logging
 import coloredlogs
 
+from qtpy.QtCore import Signal, QObject
+
+
+class SignalHandler(QObject, logging.StreamHandler):
+    log = Signal(str)
+
+    def __init__(self):
+        super(SignalHandler, self).__init__()
+
+    def emit(self, record: logging.LogRecord) -> None:
+        log = self.format(record)
+        if isinstance(log, str):
+            self.log.emit(log)
+
 
 class Logger:
     def __init__(self):
@@ -8,6 +22,7 @@ class Logger:
         self.logger = None
         self.handler = None
         self.formatter = None
+        self.signal_handler = None
 
     def enable(self):
         self.logger = logging.getLogger()
@@ -32,3 +47,10 @@ class Logger:
             self.handler.setLevel(level)
         else:
             raise Exception("Logger not enabled!")
+
+    def install_signal_handler(self):
+        """Install signal handler."""
+        self.signal_handler = SignalHandler()
+        self.signal_handler.setLevel(logging.NOTSET)
+        self.logger.addHandler(self.signal_handler)
+        return self.signal_handler.log
