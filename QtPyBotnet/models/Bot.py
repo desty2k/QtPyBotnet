@@ -12,17 +12,16 @@ class Bot(Device):
 
     def __init__(self, server, bot_id: int, ip: str, port: int, **kwargs):
         super(Bot, self).__init__(server, bot_id, ip, port)
-        # add later - uniqe number for each computer
-        # ip and port may change - use mac addr?
+
         self.hash = None
 
-        self.public_ip = "Unknown"
-        self.geolocation = "Unknown"
-        self.platform = "Unknown"
-        self.architecture = "Unknown"
-        self.username = "Unknown"
-        self.administrator = "Unknown"
-        self.language = "Unknown"
+        self.public_ip = None
+        self.geolocation = None
+        self.platform = None
+        self.architecture = None
+        self.username = None
+        self.administrator = None
+        self.language = None
         self.time_created = datetime.datetime.now()
 
         self.tasks = []
@@ -55,7 +54,7 @@ class Bot(Device):
                     if result == "geolocation":
                         self.update_map.emit(self.id(), data[result])
                 else:
-                    data[result] = "Unknown"
+                    data[result] = None
         self.update(data)
 
     @Slot(Task)
