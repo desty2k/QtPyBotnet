@@ -48,7 +48,6 @@ class SecureServer(QBaseServer):
                 raise Exception("Failed to decode message")
 
             if device.is_verified():
-                self.message.emit(device, message)
                 return message
             else:
                 if message.get("event_type") == "assign":
@@ -59,7 +58,6 @@ class SecureServer(QBaseServer):
                     else:
                         self.logger.warning("Assigned keys do not match! Bot {} will be kicked!".format(device.id()))
                         device.kick()
-                return message
         else:
             self.decryption_error.emit(device, message)
             raise Exception("Message is not valid")
