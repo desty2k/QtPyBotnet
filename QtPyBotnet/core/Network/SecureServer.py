@@ -54,6 +54,7 @@ class SecureServer(QBaseServer):
                 if message.get("event_type") == "assign":
                     if str(message.get("encryption_key")).encode() == device.custom_key:
                         device.key = device.custom_key
+                        device.set_verified(True)
                         self.connected.emit(device, device.ip(), device.port())
                     else:
                         self.logger.warning("Assigned keys do not match! Bot {} will be kicked!".format(device.id()))
