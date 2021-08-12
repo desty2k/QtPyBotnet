@@ -32,6 +32,8 @@ class C2Server(SecureBalancedServer):
     def on_message(self, bot: Bot, message: bytes):
         """When server receives message from bot."""
         message = super().on_message(bot, message)
+        if not message:
+            return
 
         event_type = message.get("event_type")
         if event_type == "task":
