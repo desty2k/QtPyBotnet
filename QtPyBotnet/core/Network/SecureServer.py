@@ -65,7 +65,7 @@ class SecureServer(QBaseServer):
     @Slot(Device, dict)
     def write(self, device: Device, message: dict):
         try:
-            if device.is_verified():
+            if device.key:
                 message = json.dumps(message, cls=MessageEncoder).encode()
                 message = encrypt(message, device.key)
                 super().write(device, message)
@@ -76,7 +76,7 @@ class SecureServer(QBaseServer):
     def write_all(self, message: dict):
         message = json.dumps(message, cls=MessageEncoder).encode()
         for device in self.get_devices():
-            if device.is_verified():
+            if device.key:
                 try:
                     encrypted = encrypt(message, device.key)
                     super().write(device, encrypted)
