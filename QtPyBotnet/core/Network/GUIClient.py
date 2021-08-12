@@ -1,6 +1,7 @@
 from qtpy.QtCore import Slot, Signal
 
 from models.Bot import Bot
+from models.Events import Task
 from core.Network.SecureClient import SecureClient
 
 
@@ -92,18 +93,18 @@ class GUIClient(SecureClient):
         self.write({"event_type": "app",
                     "event": "close"})
 
-    @Slot(int, int)
-    def on_stop_task(self, bot_id, task_id):
+    @Slot(Bot, Task)
+    def on_stop_task(self, bot, task):
         self.write({"event_type": "task",
-                    "bot_id": bot_id,
-                    "task_id": task_id,
+                    "bot_id": bot.id(),
+                    "task_id": task.get_id(),
                     "event": "stop"})
 
-    @Slot(int, int)
-    def on_force_start_task(self, bot_id, task_id):
+    @Slot(Bot, Task)
+    def on_force_start_task(self, bot, task):
         self.write({"event_type": "task",
-                    "bot_id": bot_id,
-                    "task_id": task_id,
+                    "bot_id": bot.id(),
+                    "task_id": task.get_id(),
                     "event": "force_start"})
 
     @Slot(int, str, dict, int)

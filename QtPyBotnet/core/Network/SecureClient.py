@@ -13,7 +13,7 @@ class SecureClient(QThreadedClient):
     message = Signal(dict)
 
     def __init__(self):
-        super(SecureClient, self).__init__(None)
+        super(SecureClient, self).__init__()
         self.key = None
 
     @Slot(str, int, bytes)
