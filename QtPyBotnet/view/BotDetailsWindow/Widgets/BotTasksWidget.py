@@ -4,7 +4,7 @@ from qtpy.QtCore import Signal, Slot, Qt
 from qtpy.QtGui import QCursor, QCloseEvent, QSyntaxHighlighter, QTextCharFormat
 
 from models import Task, Bot
-from models.EventsTable import TasksTableModel
+from models.EventsTableModel import TasksTableModel
 
 from .TasksTableView import TasksTableView
 from view.TaskDetailsWindow import TaskDetailsWindow

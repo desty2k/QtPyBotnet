@@ -3,11 +3,11 @@ from qtpy.QtCore import QAbstractTableModel, Qt, QModelIndex, Signal
 from models.Events import Info, Task
 
 
-class TableModel(QAbstractTableModel):
+class BotsTableModel(QAbstractTableModel):
     removed = Signal(int)
 
     def __init__(self, parent=None):
-        super(TableModel, self).__init__(parent)
+        super(BotsTableModel, self).__init__(parent)
         self.bots = []
 
         self.hheaders = [

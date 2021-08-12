@@ -9,7 +9,7 @@ from qtpy.QtGui import QIcon
 from qrainbowstyle.widgets import GoogleMapsView
 
 from models import Bot
-from models.BotTable import TableModel
+from models.BotsTableModel import BotsTableModel
 from view.MainWindow.Widgets import MainWindowButton
 
 
@@ -66,7 +66,7 @@ class MainWidget(QWidget):
         self.botsTable.setEditTriggers(QTableWidget.NoEditTriggers)
         self.botsTable.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.botsTable.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.tableModel = TableModel(self)
+        self.tableModel = BotsTableModel(self)
         self.tableModel.setObjectName("tableModel")
         self.tableModel.removed.connect(self.map.deleteMarker)
         self.botsTable.setModel(self.tableModel)
