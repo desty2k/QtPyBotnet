@@ -56,8 +56,7 @@ class SecureServer(QBaseServer):
                         device.key = device.custom_key
                         self.connected.emit(device, device.ip(), device.port())
                     else:
-                        self.logger.warning("Assigned keys do not match! Bot {} will be kicked!".format(
-                            device.id()))
+                        self.logger.warning("Assigned keys do not match! Bot {} will be kicked!".format(device.id()))
                         device.kick()
                 return message
         else:
@@ -67,9 +66,10 @@ class SecureServer(QBaseServer):
     @Slot(Device, dict)
     def write(self, device: Device, message: dict):
         try:
-            message = json.dumps(message, cls=MessageEncoder).encode()
-            message = encrypt(message, device.key)
-            super().write(device, message)
+            if device.is_verified():
+                message = json.dumps(message, cls=MessageEncoder).encode()
+                message = encrypt(message, device.key)
+                super().write(device, message)
         except (json.JSONDecodeError, InvalidToken):
             self.encryption_error.emit(Device, message)
 
@@ -77,11 +77,12 @@ class SecureServer(QBaseServer):
     def write_all(self, message: dict):
         message = json.dumps(message, cls=MessageEncoder).encode()
         for device in self.get_devices():
-            try:
-                encrypted = encrypt(message, device.key)
-                super().write(device, encrypted)
-            except (json.JSONDecodeError, InvalidToken):
-                self.encryption_error.emit(device, message)
+            if device.is_verified():
+                try:
+                    encrypted = encrypt(message, device.key)
+                    super().write(device, encrypted)
+                except (json.JSONDecodeError, InvalidToken):
+                    self.encryption_error.emit(device, message)
 
 
 class SecureThreadedServer(SecureServer, QThreadedServer):
