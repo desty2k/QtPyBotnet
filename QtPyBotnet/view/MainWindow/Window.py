@@ -15,7 +15,7 @@ from view.GeneratePayloadWindow import PayloadWindow
 from view.RemoteConnectWindow import RemoteConnectWindow
 from view.FirstSetupWindow import SetupDialog
 
-from .Widgets import MainWidget, MainWindowMenu
+from .Widgets import MainWidget, MainWindowMenu, SystemTrayWidget
 
 
 class MainWindow(FramelessWindow):
@@ -40,6 +40,7 @@ class MainWindow(FramelessWindow):
         self.console_window = None
         self.spinner = None
         self.menu = None
+        self.tray = None
 
         self.client = GUIClient()
         self.client.connected.connect(self.on_gui_client_connected)
@@ -131,6 +132,12 @@ class MainWindow(FramelessWindow):
 
             self.menu = MainWindowMenu(self)
             self.addMenu(self.menu)
+
+            self.tray = SystemTrayWidget(self)
+            self.tray.exit_action_triggered.connect(self.on_close_requested)
+            self.tray.hide_action_triggered.connect(self.hide)
+            self.tray.show_action_triggered.connect(self.show)
+            self.tray.show()
             QMetaObject.connectSlotsByName(self)
 
     @Slot()
