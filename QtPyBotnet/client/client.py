@@ -231,11 +231,6 @@ class Main:
                         if self.encryption_key:
                             self.client.assign(self.encryption_key)
 
-                        for task in self.tasks:
-                            running = task.serialize()
-                            running["event_type"] = "task"
-                            self.writeque.put(running)
-
                     elif event_type == "shell":
                         command = data.get("command")
                         resp = {"event_type": "shell", "event": "output"}
@@ -315,7 +310,11 @@ class Main:
                                     self.writeque.put(
                                         {"event_type": "task", "task": task, "task_id": task_id,
                                          "state": "finished", "result": e, "exit_code": 1})
-
+                        elif event == "get":
+                            for task in self.tasks:
+                                running = task.serialize()
+                                running["event_type"] = "task"
+                                self.writeque.put(running)
                         elif event == "stop":
                             self.stop_task(task_id)
                         elif event == "force_start":
