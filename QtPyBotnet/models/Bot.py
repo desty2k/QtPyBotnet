@@ -25,6 +25,7 @@ class Bot(Device):
         self.language = None
         self.time_created = datetime.datetime.now()
 
+        self.logs = []
         self.tasks = []
         self.modules = []
         self.next_task_id = 0

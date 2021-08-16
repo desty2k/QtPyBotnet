@@ -14,6 +14,7 @@ class C2Server(SecureBalancedServer):
 
     task = Signal(Task)
     info = Signal(Info)
+    log = Signal(Bot, str)
 
     shell_error = Signal(Bot, str)
     shell_output = Signal(Bot, str)
@@ -36,7 +37,11 @@ class C2Server(SecureBalancedServer):
             return
 
         event_type = message.get("event_type")
-        if event_type == "task":
+        if event_type == "log":
+            # pass
+            print(message.get("log"))
+
+        elif event_type == "task":
             state = message.get("state")
             task_id = message.get("task_id")
             task = bot.get_task_by_id(task_id)

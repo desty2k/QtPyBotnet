@@ -5,7 +5,7 @@ from qrainbowstyle.windows import FramelessWindow
 from models.Bot import Bot
 from models.Events import Task
 
-from .Widgets import TasksWidget, AttributesWidget, ShellWidget, ModulesWidget, RelayWidget
+from .Widgets import TasksWidget, AttributesWidget, ShellWidget, ModulesWidget, RelayWidget, LogsWidget
 
 
 class DeviceWindow(FramelessWindow):
@@ -20,9 +20,6 @@ class DeviceWindow(FramelessWindow):
         self.tab_widget = QTabWidget(self)
         self.addContentWidget(self.tab_widget)
 
-        self.attributes_tab = AttributesWidget(bot, self)
-        self.attributes_tab.update_attributes(bot)
-
         self.tasks_tab = TasksWidget(bot, self)
         self.tasks_tab.stop_task.connect(self.stop_task.emit)
         self.tasks_tab.force_start_task.connect(self.force_start_task.emit)
@@ -34,10 +31,16 @@ class DeviceWindow(FramelessWindow):
 
         self.relay_tab = RelayWidget(bot, self)
 
+        self.logs_tab = LogsWidget(bot, self)
+
+        self.attributes_tab = AttributesWidget(bot, self)
+        self.attributes_tab.update_attributes(bot)
+
         self.tab_widget.addTab(self.tasks_tab, "Tasks")
         self.tab_widget.addTab(self.modules_tab, "Modules")
         self.tab_widget.addTab(self.shell_tab, "Shell")
         self.tab_widget.addTab(self.relay_tab, "Relay")
+        self.tab_widget.addTab(self.logs_tab, "Logs")
         self.tab_widget.addTab(self.attributes_tab, "Information")
 
     @Slot(list)
