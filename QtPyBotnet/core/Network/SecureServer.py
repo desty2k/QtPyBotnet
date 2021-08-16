@@ -16,11 +16,10 @@ class SecureServer(QBaseServer):
     decryption_error = Signal(Device, bytes)
     message = Signal(Device, dict)
 
-    def __init__(self, require_verification=True):
+    def __init__(self):
         super(SecureServer, self).__init__(None)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.key = None
-        self.require_verification = require_verification
 
     @Slot(str, int, bytes)
     def start(self, ip, port, key):
@@ -30,12 +29,8 @@ class SecureServer(QBaseServer):
     @Slot(Device, str, int)
     def on_connected(self, device: Device, ip, port):
         device.key = self.key
-        if self.require_verification:
-            device.custom_key = generate_key()
-            device.write({"event_type": "assign", "encryption_key": device.custom_key.decode()})
-        else:
-            device.set_verified(True)
-            self.connected.emit(device, ip, port)
+        device.custom_key = generate_key()
+        device.write({"event_type": "assign", "encryption_key": device.custom_key.decode()})
 
     @Slot(Device, bytes)
     def on_message(self, device: Device, message: bytes) -> dict:
@@ -91,8 +86,8 @@ class SecureServer(QBaseServer):
 
 class SecureThreadedServer(SecureServer, QThreadedServer):
 
-    def __init__(self, require_verification):
-        super(SecureThreadedServer, self).__init__(require_verification)
+    def __init__(self):
+        super(SecureThreadedServer, self).__init__()
 
 
 class SecureBalancedServer(SecureServer, QBalancedServer):

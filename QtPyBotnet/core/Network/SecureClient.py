@@ -15,6 +15,8 @@ class SecureClient(QThreadedClient):
 
     def __init__(self):
         super(SecureClient, self).__init__()
+        self.server_ip = None
+        self.server_port = None
         self.key = None
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -31,14 +33,24 @@ class SecureClient(QThreadedClient):
             self.logger.message("Received decrypted: {}".format(message))
         else:
             self.decryption_error.emit(message)
-
         try:
             message = json.loads(message, cls=MessageDecoder)
-            self.message.emit(message)
-            return message
+            if message.get("event_type") == "assign":
+                encryption_key = message.get("encryption_key")
+                self.write({"event_type": "assign", "encryption_key": encryption_key})
+                self.key = encryption_key
+                self.connected.emit(self.server_ip, self.server_port)
+                return {}
+            else:
+                self.message.emit(message)
+                return message
         except json.JSONDecodeError as e:
             self.logger.error("Failed to decode message {}: {}".format(message, e))
-            return
+
+    @Slot(str, int)
+    def on_connected(self, ip, port):
+        self.server_ip = ip
+        self.server_port = port
 
     @Slot(dict)
     def write(self, message: dict):
@@ -49,6 +61,3 @@ class SecureClient(QThreadedClient):
             super().write(message)
         except (json.JSONDecodeError, InvalidToken):
             self.encryption_error.emit(Device, message)
-
-
-

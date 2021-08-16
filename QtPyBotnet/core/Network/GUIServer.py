@@ -30,8 +30,8 @@ class GUIServer(SecureThreadedServer):
 
     run_shell = Signal(int, str)
 
-    def __init__(self, require_verification=False):
-        super(GUIServer, self).__init__(require_verification)
+    def __init__(self):
+        super(GUIServer, self).__init__()
         self.set_device_model(Device)
 
     @Slot()
