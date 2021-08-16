@@ -143,11 +143,13 @@ class BaseGenerator(QObject):
             if exit_status == 0:
                 self.build_update.emit("Build process completed successfully")
                 if self.__keep_build:
-                    output_path = copy_tree(os.path.normpath(tmp_dir_path),
-                                            os.path.join(DIST_PATH, self.dockerfile))
+                    # copy all build files
+                    output_path = os.path.realpath(os.path.join(DIST_PATH, self.dockerfile))
+                    copy_tree(os.path.realpath(tmp_dir_path), output_path)
                 else:
-                    output_path = copy_tree(os.path.normpath(os.path.join(tmp_dir_path, "./dist/")),
-                                            DIST_PATH)
+                    # copy executable file
+                    output_path = os.path.realpath(DIST_PATH)
+                    copy_tree(os.path.realpath(os.path.join(tmp_dir_path, "./dist/")), output_path)
                 self.build_update.emit("Executable path: {}".format(output_path))
             else:
                 self.build_error.emit(str(container.logs(stdout=False, stderr=True), encoding="utf-8"))
