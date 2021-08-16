@@ -1,4 +1,4 @@
-from qtpy.QtWidgets import (QWidget, QVBoxLayout, QListWidget, QListWidgetItem)
+from qtpy.QtWidgets import (QWidget, QVBoxLayout, QLabel)
 
 
 class RelayWidget(QWidget):
@@ -11,8 +11,9 @@ class RelayWidget(QWidget):
         self.widget_layout = QVBoxLayout(self)
         self.setLayout(self.widget_layout)
 
-        self.modules_list = QListWidget(self)
-        self.widget_layout.addWidget(self.modules_list)
-
-        for module in bot.modules:
-            self.modules_list.addItem(QListWidgetItem(module.name, self.modules_list))
+        self.relay_status = QLabel(self)
+        self.widget_layout.addWidget(self.relay_status)
+        if self.bot.relay_status is None:
+            self.relay_status.setText("Inactive")
+        else:
+            self.relay_status.setText("Active")

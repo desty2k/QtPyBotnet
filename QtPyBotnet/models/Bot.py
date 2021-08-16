@@ -14,6 +14,7 @@ class Bot(Device):
         super(Bot, self).__init__(server, bot_id, ip, port)
 
         self.hash = None
+        self.relay_status = None
 
         self.public_ip = None
         self.geolocation = None
