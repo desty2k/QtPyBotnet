@@ -40,7 +40,10 @@ class SecureServer(QBaseServer):
     @Slot(Device, bytes)
     def on_message(self, device: Device, message: bytes) -> dict:
         if validate_token(message):
+            self.logger.encrypted_message("Received bytes: {}".format(message))
             message = decrypt(message, device.key)
+            self.logger.message("Received decrypted: {}".format(message))
+
             try:
                 message = json.loads(message, cls=MessageDecoder)
             except json.JSONDecodeError as e:
@@ -55,12 +58,14 @@ class SecureServer(QBaseServer):
                         device.key = device.custom_key
                         device.set_verified(True)
                         self.connected.emit(device, device.ip(), device.port())
+                        self.logger.info("Device {} validated".format(device.id()))
                     else:
                         self.logger.warning("Assigned keys do not match! Bot {} will be kicked!".format(device.id()))
                         device.kick()
         else:
             self.decryption_error.emit(device, message)
             raise Exception("Message is not valid")
+        return {}
 
     @Slot(Device, dict)
     def write(self, device: Device, message: dict):

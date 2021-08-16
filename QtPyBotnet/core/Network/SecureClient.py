@@ -2,6 +2,7 @@ from qtpy.QtCore import Signal, Slot
 from QtPyNetwork.client import QThreadedClient
 
 import json
+import logging
 from cryptography.fernet import InvalidToken
 
 from models.Device import Device
@@ -15,6 +16,7 @@ class SecureClient(QThreadedClient):
     def __init__(self):
         super(SecureClient, self).__init__()
         self.key = None
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     @Slot(str, int, bytes)
     def start(self, ip, port, key):
@@ -24,7 +26,9 @@ class SecureClient(QThreadedClient):
     @Slot(bytes)
     def on_message(self, message: bytes) -> dict:
         if self.key and validate_token(message):
+            self.logger.encrypted_message("Received bytes: {}".format(message))
             message = decrypt(message, self.key)
+            self.logger.message("Received decrypted: {}".format(message))
         else:
             self.decryption_error.emit(message)
 

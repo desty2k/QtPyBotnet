@@ -3,6 +3,26 @@ import coloredlogs
 
 from qtpy.QtCore import Signal, QObject
 
+MESSAGE_LEVEL = 4
+ENCRYPTED_MESSAGE_LEVEL = 2
+
+logging.addLevelName(MESSAGE_LEVEL, "MESSAGE")
+logging.addLevelName(ENCRYPTED_MESSAGE_LEVEL, "ENCRYPTED_MESSAGE")
+
+
+def message(self, msg, *args, **kws):
+    if self.isEnabledFor(MESSAGE_LEVEL):
+        self._log(MESSAGE_LEVEL, msg, args, **kws)
+
+
+def encrypted_message(self, msg, *args, **kws):
+    if self.isEnabledFor(ENCRYPTED_MESSAGE_LEVEL):
+        self._log(ENCRYPTED_MESSAGE_LEVEL, msg, args, **kws)
+
+
+logging.Logger.message = message
+logging.Logger.encrypted_message = encrypted_message
+
 
 class SignalHandler(QObject, logging.StreamHandler):
     log = Signal(str)
