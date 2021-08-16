@@ -1,3 +1,18 @@
+import logging
+
+
+class QueueHandler(logging.StreamHandler):
+
+    def __init__(self, queue):
+        super(QueueHandler, self).__init__()
+        self.queue = queue
+
+    def emit(self, record: logging.LogRecord) -> None:
+        log = self.format(record)
+        if isinstance(log, str):
+            self.queue.put({"event_type": "log", "log": log})
+
+
 class Logger:
     def __init__(self):
         super(Logger, self).__init__()

