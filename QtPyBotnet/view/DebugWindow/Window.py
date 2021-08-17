@@ -64,26 +64,26 @@ class Console(FramelessWindow):
         self.input_edit.setStyleSheet("background-color: rgb(0, 0, 0); color: rgb(0, 255, 0)")
         self.input_edit.setFont(QFont(self.output_edit.currentFont().family(), 10))
 
-        self.sendButton = QPushButton(self.widget)
-        self.sendButton.setObjectName("sendButton")
-        self.sendButton.setText("Send command")
+        self.send_button = QPushButton(self.widget)
+        self.send_button.setObjectName("send_button")
+        self.send_button.setText("Send command")
 
         self.console_layout.addWidget(self.output_label)
         self.console_layout.addWidget(self.output_edit)
         self.console_layout.addWidget(self.input_label)
         self.console_layout.addWidget(self.input_edit)
-        self.console_layout.addWidget(self.sendButton)
+        self.console_layout.addWidget(self.send_button)
 
         self.addContentWidget(self.widget)
         QMetaObject.connectSlotsByName(self)
 
-    def on_sendButton_clicked(self):
+    def on_send_button_clicked(self):
         mess = self.input_edit.text()
         try:
             mess = json.loads(mess)
             self.message.emit(mess)
             self.input_edit.clear()
-            self.output.append("$: {}".format(mess))
+            self.output_edit.append("$: {}".format(mess))
 
         except json.JSONDecodeError as e:
             self.json_decode_warning = FramelessCriticalMessageBox(self)
