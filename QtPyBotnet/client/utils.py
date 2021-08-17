@@ -8,9 +8,8 @@ class QueueHandler(logging.StreamHandler):
         self.queue = queue
 
     def emit(self, record: logging.LogRecord) -> None:
-        log = self.format(record)
-        if isinstance(log, str):
-            self.queue.put({"event_type": "log", "log": log})
+        self.queue.put({"event_type": "log", "thread_name": record.threadName,
+                        "name": record.name, "level": record.levelno, "msg": record.msg})
 
 
 class Logger:
