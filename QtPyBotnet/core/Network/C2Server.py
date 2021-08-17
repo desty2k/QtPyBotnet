@@ -5,7 +5,7 @@ import datetime
 
 from qtpy.QtCore import Slot, Signal
 
-from models import Bot, Task, Info, Device
+from models import Bot, Task, Info, Device, Log
 from core.Network.SecureServer import SecureBalancedServer
 
 
@@ -14,7 +14,7 @@ class C2Server(SecureBalancedServer):
 
     task = Signal(Task)
     info = Signal(Info)
-    log = Signal(Bot, str)
+    log = Signal(Bot, Log)
 
     shell_error = Signal(Bot, str)
     shell_output = Signal(Bot, str)
@@ -33,13 +33,13 @@ class C2Server(SecureBalancedServer):
     def on_message(self, bot: Bot, message: bytes):
         """When server receives message from bot."""
         message = super().on_message(bot, message)
-        if not message:
+        if message is None:
             return
 
         event_type = message.get("event_type")
         if event_type == "log":
-            # pass
-            print(message.get("log"))
+            self.log.emit(bot, Log(bot.id(), message.get("thread_name"), message.get("name"), message.get("level"),
+                                   message.get("msg")))
 
         elif event_type == "task":
             state = message.get("state")

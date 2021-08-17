@@ -48,6 +48,7 @@ class MainWindow(FramelessWindow):
         self.client.bot_connected.connect(self.content_widget.add_bot)
         self.client.bot_disconnected.connect(self.content_widget.remove_bot)
         self.client.bot_updated.connect(self.content_widget.update_bot)
+        self.client.bot_log.connect(self.content_widget.on_bot_log)
 
         self.client.get_config.connect(self.on_gui_client_config)
         self.client.start_first_setup.connect(self.on_start_first_setup)

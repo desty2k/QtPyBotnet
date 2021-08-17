@@ -40,7 +40,7 @@ class DeviceWindow(FramelessWindow):
         self.tab_widget.addTab(self.modules_tab, "Modules")
         self.tab_widget.addTab(self.shell_tab, "Shell")
         self.tab_widget.addTab(self.relay_tab, "Relay")
-        self.tab_widget.addTab(self.logs_tab, "Logs")
+        self.tab_widget.addTab(self.logs_tab, "Log")
         self.tab_widget.addTab(self.attributes_tab, "Information")
 
     @Slot(list)

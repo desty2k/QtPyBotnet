@@ -1,7 +1,6 @@
 from qtpy.QtCore import Slot, Signal
 
-from models.Bot import Bot
-from models.Events import Task
+from models import Bot, Log, Task
 from core.Network.SecureClient import SecureClient
 
 
@@ -10,6 +9,7 @@ class GUIClient(SecureClient):
     bot_connected = Signal(int, str, int)
     bot_disconnected = Signal(int)
     bot_updated = Signal(int, dict)
+    bot_log = Signal(Log)
 
     build_message = Signal(dict)
     task_message = Signal(dict)
@@ -54,6 +54,9 @@ class GUIClient(SecureClient):
 
         elif event_type == "info":
             self.bot_updated.emit(message.get("bot_id"), message)
+
+        elif event_type == "log":
+            self.bot_log.emit(Log.deserialize(message))
 
         elif event_type == "build":
             self.build_message.emit(message)

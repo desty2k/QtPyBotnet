@@ -3,7 +3,7 @@ from qtpy.QtCore import Signal, Slot
 import socket
 
 from models.Bot import Bot
-from models import Task, Info
+from models import Task, Info, Log
 from models.Device import Device
 from core.crypto import generate_key
 from core.Network.SecureServer import SecureThreadedServer
@@ -214,6 +214,10 @@ class GUIServer(SecureThreadedServer):
     @Slot(Info)
     def on_bot_info(self, info):
         self.write_all(info.serialize())
+
+    @Slot(Bot, Log)
+    def on_bot_log(self, bot, log):
+        self.write_all(log.serialize())
 
     @Slot(str)
     def on_log_signal(self, log: str):

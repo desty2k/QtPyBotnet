@@ -112,6 +112,7 @@ class Main(QObject):
         self.c2server.disconnected.connect(self.gui_server.on_bot_disconnected)
         self.c2server.task.connect(self.gui_server.on_bot_task)
         self.c2server.info.connect(self.gui_server.on_bot_info)
+        self.c2server.log.connect(self.gui_server.on_bot_log)
 
         self.c2server.shell_output.connect(self.gui_server.on_shell_output)
         self.c2server.shell_error.connect(self.gui_server.on_shell_error)
